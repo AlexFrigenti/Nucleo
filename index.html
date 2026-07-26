@@ -111,6 +111,41 @@ section{margin-bottom:26px}
 .asequible .precio{color:var(--calor)}
 .ficha.mejora{border-style:dashed}
 
+/* --- glifo animado de cada módulo --- */
+.ficha.modulo{grid-template-columns:28px 1fr auto auto;column-gap:12px}
+.ficha.modulo .glifo{grid-column:1;grid-row:1/3;width:26px;height:26px;
+  color:var(--tenue);display:flex;align-items:center;justify-content:center;
+  transition:color .8s linear,opacity .3s}
+.ficha.modulo .glifo svg{width:100%;height:100%;overflow:hidden}
+.ficha.modulo .nombre{grid-column:2;grid-row:1}
+.ficha.modulo .detalle{grid-column:2;grid-row:2}
+.ficha.modulo .cant{grid-column:3;grid-row:1/3}
+.ficha.modulo .precio{grid-column:4;grid-row:1/3}
+.ficha.modulo.activo .glifo{color:var(--tono)}
+.ficha.modulo:not(.activo) .glifo{opacity:.3}
+.ficha.modulo:not(.activo) .glifo .anim,
+.ficha.modulo:not(.activo) .glifo .anim2{animation-play-state:paused}
+
+.glifo .anim,.glifo .anim2{transform-box:fill-box;transform-origin:center}
+@keyframes girar{to{transform:rotate(360deg)}}
+@keyframes latir{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(2px);opacity:1}}
+@keyframes fluir{to{stroke-dashoffset:-8}}
+@keyframes onda{0%{transform:scale(.3);opacity:.9}100%{transform:scale(1.55);opacity:0}}
+@keyframes ondular{to{transform:translateX(-6px)}}
+@keyframes nucleo{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.1);opacity:1}}
+@keyframes parpadeo{0%,100%{opacity:.55}50%{opacity:1}}
+.g-sonda   .anim{transform-origin:center top;animation:latir 1.3s ease-in-out infinite}
+.g-turbina .anim{animation:girar 2.2s linear infinite}
+.g-inter   .anim{animation:fluir 1s linear infinite}
+.g-inter   .anim2{animation:fluir 1s linear infinite reverse}
+.g-bucle   .anim{animation:girar 3s linear infinite}
+.g-pozo    .anim{animation:onda 2s ease-out infinite}
+.g-pozo    .d2{animation-delay:1s}
+.g-manto   .anim{animation:ondular 2.4s linear infinite}
+.g-externo .anim{animation:girar 4s linear infinite}
+.g-interno .anim{animation:nucleo 1.6s ease-in-out infinite}
+.g-plasma  .anim{animation:girar 1.4s linear infinite,parpadeo .6s ease-in-out infinite}
+
 /* --- recalibrar --- */
 #recal{display:none;width:100%;padding:15px;border-radius:12px;
   background:transparent;border:1px solid var(--frio);color:var(--frio);
@@ -131,6 +166,7 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 
 @media (prefers-reduced-motion:reduce){
   #halo{animation:none}.chispa{animation-duration:.01s}
+  .glifo .anim,.glifo .anim2{animation:none}
 }
 </style>
 
@@ -284,12 +320,26 @@ function fmtTiempo(seg){
 const $ = id => document.getElementById(id);
 const ref = {};
 
+/* dibujos animados de cada módulo (SVG) */
+const GLIFOS = {
+  sonda:'<svg class="g-sonda" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v9"/><path class="anim" d="M9 13h6l-3 5z" fill="currentColor" stroke="none"/></svg>',
+  turbina:'<svg class="g-turbina" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><g class="anim"><rect width="24" height="24" fill="none"/><path d="M12 12V3"/><path d="M12 12l7.8 4.5"/><path d="M12 12L4.2 16.5"/></g><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>',
+  inter:'<svg class="g-inter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="anim" d="M3 9h18" stroke-dasharray="4 4"/><path class="anim2" d="M21 15H3" stroke-dasharray="4 4"/></svg>',
+  bucle:'<svg class="g-bucle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle class="anim" cx="12" cy="12" r="7.5" stroke-dasharray="7 5"/></svg>',
+  pozo:'<svg class="g-pozo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle class="anim" cx="12" cy="12" r="6"/><circle class="anim d2" cx="12" cy="12" r="6"/></svg>',
+  manto:'<svg class="g-manto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="anim" d="M-4 12q3-5 6 0t6 0t6 0t6 0"/></svg>',
+  externo:'<svg class="g-externo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle class="anim" cx="12" cy="12" r="7.5" stroke-dasharray="30 14"/></svg>',
+  interno:'<svg class="g-interno" viewBox="0 0 24 24" fill="none"><circle class="anim" cx="12" cy="12" r="5.5" fill="currentColor"/></svg>',
+  plasma:'<svg class="g-plasma" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><g class="anim"><rect width="24" height="24" fill="none"/><path d="M12 3v18"/><path d="M3 12h18"/><path d="M5.5 5.5l13 13"/><path d="M18.5 5.5l-13 13"/></g></svg>'
+};
+
 function crearFichas(){
   const cm = $('modulos'); cm.innerHTML='';
   MODULOS.forEach(m=>{
     const b = document.createElement('button');
-    b.className='ficha';
-    b.innerHTML = `<div class="nombre">${m.nombre}</div>
+    b.className='ficha modulo';
+    b.innerHTML = `<div class="glifo">${GLIFOS[m.id]||''}</div>
+      <div class="nombre">${m.nombre}</div>
       <div class="detalle"></div>
       <div class="cant"></div>
       <div class="precio"></div>`;
@@ -431,6 +481,7 @@ function dibujar(jps){
     r.det.textContent  = n ? fmt(produccionDe(m))+' J/s' : '+'+fmt(m.prod*multiplicadorDe(m.id)*bonusGlobal())+' J/s';
     const puedo = s.j >= c;
     r.caja.classList.toggle('asequible', puedo);
+    r.caja.classList.toggle('activo', n>0);
     r.caja.disabled = !puedo;
   });
   $('totalMod').textContent = totalMod ? totalMod+' instalados' : '';
@@ -493,7 +544,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 5;
+const VERSION = 6;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

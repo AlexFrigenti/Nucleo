@@ -109,7 +109,18 @@ section{margin-bottom:26px}
 .ficha .cant{grid-row:1/3;font-family:var(--mono);font-size:20px;font-weight:600;
   color:var(--tenue);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 .asequible .precio{color:var(--calor)}
+.ficha .precio{white-space:nowrap}
 .ficha.mejora{border-style:dashed}
+
+/* --- selector de cantidad de compra --- */
+#selCompra{display:flex;gap:6px;margin-bottom:10px}
+#selCompra .sel{
+  flex:1;padding:8px 0;border-radius:9px;
+  background:var(--capa);border:1px solid var(--linea);color:var(--tenue);
+  font-family:var(--mono);font-size:12px;font-weight:600;
+}
+#selCompra .sel:active{background:var(--capa-alta)}
+#selCompra .sel.activo{border-color:var(--frio);color:var(--frio);background:var(--capa-alta)}
 
 /* --- glifo animado de cada módulo --- */
 .ficha.modulo{grid-template-columns:28px 1fr auto auto;column-gap:12px}
@@ -213,6 +224,12 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 
 <section>
   <h2>Módulos <span id="totalMod"></span></h2>
+  <div id="selCompra">
+    <button class="sel activo" data-n="1">×1</button>
+    <button class="sel" data-n="10">×10</button>
+    <button class="sel" data-n="100">×100</button>
+    <button class="sel" data-n="max">Máx</button>
+  </div>
   <div id="modulos"></div>
 </section>
 
@@ -320,6 +337,19 @@ function porToque(){
 function costeDe(m){
   return m.base * Math.pow(CRECIMIENTO, s.mod[m.id]);
 }
+// coste total de comprar k unidades seguidas (suma geométrica)
+function costeVarios(m,k){
+  return costeDe(m) * (Math.pow(CRECIMIENTO,k) - 1) / (CRECIMIENTO - 1);
+}
+// cuántas unidades puedes permitirte ahora mismo
+function maxAsequible(m){
+  const cd = costeDe(m);
+  const ratio = 1 + s.j*(CRECIMIENTO-1)/cd;
+  let k = ratio > 1 ? Math.floor(Math.log(ratio)/Math.log(CRECIMIENTO)) : 0;
+  if(k < 0) k = 0;
+  while(k > 0 && costeVarios(m,k) > s.j) k--; // margen por redondeo
+  return k;
+}
 function isotoposAlRecalibrar(){
   return Math.floor(Math.sqrt(s.totalCiclo / UMBRAL));
 }
@@ -397,10 +427,21 @@ function pintarMejoras(){
   });
 }
 
+let modoCompra = 1; // 1, 10, 100 o 'max'
+document.querySelectorAll('#selCompra .sel').forEach(btn=>{
+  btn.onclick = ()=>{
+    const v = btn.dataset.n;
+    modoCompra = (v === 'max') ? 'max' : parseInt(v,10);
+    document.querySelectorAll('#selCompra .sel').forEach(b=>b.classList.toggle('activo', b===btn));
+  };
+});
+
 function comprarModulo(m){
-  const c = costeDe(m);
-  if(s.j < c) return;
-  s.j -= c; s.mod[m.id]++;
+  const k = (modoCompra === 'max') ? maxAsequible(m) : modoCompra;
+  if(k < 1) return;
+  const total = costeVarios(m, k);
+  if(s.j < total) return;           // en modos fijos, exige poder pagar todo el lote
+  s.j -= total; s.mod[m.id] += k;
   pintarMejoras(); guardar();
 }
 
@@ -566,12 +607,21 @@ function dibujar(jps){
 
   let totalMod = 0;
   MODULOS.forEach(m=>{
-    const r = ref[m.id], c = costeDe(m), n = s.mod[m.id];
+    const r = ref[m.id], n = s.mod[m.id];
     totalMod += n;
+    let k, coste, puedo;
+    if(modoCompra === 'max'){
+      k = maxAsequible(m);
+      coste = costeVarios(m, Math.max(k,1));
+      puedo = k >= 1;
+    }else{
+      k = modoCompra;
+      coste = costeVarios(m, k);
+      puedo = s.j >= coste;
+    }
     r.cant.textContent = n || '';
-    r.pre.textContent  = fmt(c);
+    r.pre.textContent  = (modoCompra === 'max' && k >= 1) ? (k + '× ' + fmt(coste)) : fmt(coste);
     r.det.textContent  = n ? fmt(produccionDe(m))+' J/s' : '+'+fmt(m.prod*multiplicadorDe(m.id)*bonusGlobal())+' J/s';
-    const puedo = s.j >= c;
     r.caja.classList.toggle('asequible', puedo);
     r.caja.classList.toggle('activo', n>0);
     r.glifo.style.color = n>0 ? colorNivel(n) : '';
@@ -637,7 +687,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 8;
+const VERSION = 9;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

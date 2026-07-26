@@ -194,7 +194,10 @@ const MODULOS = [
   {id:'inter',  nombre:'Intercambiador', base:1400,    prod:8},
   {id:'bucle',  nombre:'Bucle de vapor', base:20000,   prod:47},
   {id:'pozo',   nombre:'Pozo profundo',  base:330000,  prod:260},
-  {id:'manto',  nombre:'Manto',          base:5100000, prod:1400}
+  {id:'manto',  nombre:'Manto',          base:5100000, prod:1400},
+  {id:'externo',nombre:'Núcleo externo', base:85000000,    prod:7800},
+  {id:'interno',nombre:'Núcleo interno', base:1400000000,  prod:44000},
+  {id:'plasma', nombre:'Forja de plasma',base:24000000000, prod:255000}
 ];
 const CRECIMIENTO = 1.15;
 
@@ -205,7 +208,12 @@ const MEJORAS = [
   {id:'m4', nombre:'Doble circuito',       coste:60000,    obj:'inter',   mult:2,   req:s=>s.mod.inter>=10,   nota:'Intercambiadores x2'},
   {id:'m5', nombre:'Blindaje de wolframio',coste:250000,   obj:'global',  mult:1.5, req:s=>s.mod.bucle>=5,    nota:'Producción total x1,5'},
   {id:'m6', nombre:'Presión crítica',      coste:900000,   obj:'bucle',   mult:2,   req:s=>s.mod.bucle>=10,   nota:'Bucles x2'},
-  {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Pozos x2'}
+  {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Pozos x2'},
+  {id:'m8', nombre:'Convección forzada',   coste:40000000,    obj:'manto',   mult:2,   req:s=>s.mod.manto>=10,   nota:'Mantos x2'},
+  {id:'m9', nombre:'Resonancia sísmica',   coste:150000000,   obj:'global',  mult:1.5, req:s=>s.mod.externo>=5,  nota:'Producción total x1,5'},
+  {id:'m10',nombre:'Contención toroidal',  coste:900000000,   obj:'externo', mult:2,   req:s=>s.mod.externo>=10, nota:'Núcleos externos x2'},
+  {id:'m11',nombre:'Ignición por láser',   coste:12000000000, obj:'interno', mult:2,   req:s=>s.mod.interno>=10, nota:'Núcleos internos x2'},
+  {id:'m12',nombre:'Campo de Higgs',       coste:100000000000,obj:'plasma',  mult:3,   req:s=>s.mod.plasma>=10,  nota:'Forjas de plasma x3'}
 ];
 
 const UMBRAL = 1e6;                    // julios por el primer isótopo

@@ -345,7 +345,7 @@ function crearFichas(){
       <div class="precio"></div>`;
     b.onclick = ()=>comprarModulo(m);
     cm.appendChild(b);
-    ref[m.id] = {caja:b, det:b.querySelector('.detalle'),
+    ref[m.id] = {caja:b, glifo:b.querySelector('.glifo'), det:b.querySelector('.detalle'),
                  cant:b.querySelector('.cant'), pre:b.querySelector('.precio')};
   });
 }
@@ -376,6 +376,20 @@ function comprarModulo(m){
   if(s.j < c) return;
   s.j -= c; s.mod[m.id]++;
   pintarMejoras(); guardar();
+}
+
+/* color del glifo según cuántas unidades de ESE módulo tengas */
+const NIVELES = [
+  {min:200, col:'#FF5E3A'},  // ardiendo
+  {min:100, col:'#FF7A34'},  // naranja intenso
+  {min:50,  col:'#F0A22E'},  // naranja
+  {min:25,  col:'#B9D14A'},  // lima
+  {min:10,  col:'#4FD0A6'},  // turquesa
+  {min:0,   col:'#4FC3D9'}   // frío
+];
+function colorNivel(n){
+  for(const nv of NIVELES){ if(n >= nv.min) return nv.col; }
+  return '#4FC3D9';
 }
 
 /* ============ TOQUE EN EL NÚCLEO ============ */
@@ -482,6 +496,7 @@ function dibujar(jps){
     const puedo = s.j >= c;
     r.caja.classList.toggle('asequible', puedo);
     r.caja.classList.toggle('activo', n>0);
+    r.glifo.style.color = n>0 ? colorNivel(n) : '';
     r.caja.disabled = !puedo;
   });
   $('totalMod').textContent = totalMod ? totalMod+' instalados' : '';
@@ -544,7 +559,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 6;
+const VERSION = 7;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

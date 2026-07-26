@@ -154,6 +154,23 @@ section{margin-bottom:26px}
 #recal small{display:block;font-weight:400;font-size:11px;opacity:.75;margin-top:3px;
   font-family:var(--mono)}
 
+/* --- sincronizar partida --- */
+#secDatos .datos-btn{
+  width:100%;padding:13px 14px;border-radius:12px;margin-bottom:8px;
+  background:var(--capa);border:1px solid var(--linea);color:var(--texto);
+  font-family:var(--sans);font-size:14px;font-weight:600;text-align:left;
+}
+#secDatos .datos-btn:active{background:var(--capa-alta)}
+#secDatos #btnCargar{display:none;border-color:var(--frio);color:var(--frio)}
+#secDatos #datosArea{
+  display:none;width:100%;min-height:72px;margin-bottom:8px;padding:11px 13px;
+  border-radius:12px;background:var(--capa);border:1px solid var(--linea);color:var(--texto);
+  font-family:var(--mono);font-size:12px;line-height:1.4;resize:vertical;
+  -webkit-user-select:text;user-select:text;
+}
+#secDatos #datosMsg{font-size:12px;color:var(--frio);margin-bottom:8px;
+  min-height:1em;font-family:var(--mono);line-height:1.4}
+
 /* --- pie --- */
 footer{display:flex;justify-content:space-between;font-size:11px;color:var(--tenue);
   border-top:1px solid var(--linea);padding-top:12px;font-family:var(--mono)}
@@ -206,6 +223,15 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 
 <section>
   <button id="recal"></button>
+</section>
+
+<section id="secDatos">
+  <h2>Sincronizar partida</h2>
+  <div id="datosMsg"></div>
+  <button class="datos-btn" id="btnExportar">Exportar partida · copiar código</button>
+  <button class="datos-btn" id="btnImportar">Importar partida · pegar código</button>
+  <textarea id="datosArea" placeholder="Aquí aparecerá tu código, o pega uno para importar…"></textarea>
+  <button class="datos-btn" id="btnCargar">Cargar el código pegado</button>
 </section>
 
 <footer>
@@ -421,6 +447,58 @@ $('borrar').onclick = ()=>{
   s = nuevaPartida(); pintarMejoras(); guardar();
 };
 
+/* ============ EXPORTAR / IMPORTAR PARTIDA ============
+   Sincronización manual entre dispositivos mediante un código de texto.
+   No sale nada a ningún servidor: el código lo mueves tú (copiar/pegar). */
+function codificar(str){ return btoa(unescape(encodeURIComponent(str))); }
+function decodificar(code){ return decodeURIComponent(escape(atob(code))); }
+
+$('btnExportar').onclick = ()=>{
+  guardar();
+  const code = 'NUCLEO:' + codificar(JSON.stringify(s));
+  const area = $('datosArea');
+  area.style.display = 'block';
+  area.value = code;
+  $('btnCargar').style.display = 'none';
+  area.focus(); area.select();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code)
+      .then(()=> $('datosMsg').textContent = '✓ Código copiado. Ábrelo en el otro dispositivo, pulsa "Importar" y pégalo.')
+      .catch(()=> $('datosMsg').textContent = 'Copia a mano el código de arriba y pégalo en el otro dispositivo.');
+  } else {
+    $('datosMsg').textContent = 'Copia a mano el código de arriba y pégalo en el otro dispositivo.';
+  }
+};
+
+$('btnImportar').onclick = ()=>{
+  const area = $('datosArea');
+  area.style.display = 'block';
+  area.value = '';
+  $('btnCargar').style.display = 'block';
+  area.focus();
+  $('datosMsg').textContent = 'Pega aquí el código del otro dispositivo y pulsa "Cargar".';
+};
+
+$('btnCargar').onclick = ()=>{
+  let code = $('datosArea').value.trim();
+  if(!code){ $('datosMsg').textContent = 'No hay ningún código pegado.'; return; }
+  if(code.startsWith('NUCLEO:')) code = code.slice(7);
+  let datos;
+  try{ datos = JSON.parse(decodificar(code)); }
+  catch(e){ $('datosMsg').textContent = '✗ El código no es válido.'; return; }
+  if(!datos || typeof datos.j !== 'number' || typeof datos.mod !== 'object'){
+    $('datosMsg').textContent = '✗ Ese código no parece una partida de Núcleo.'; return;
+  }
+  if(!confirm('Esto reemplazará la partida de ESTE dispositivo por la del código. ¿Seguro?')) return;
+  s = Object.assign(nuevaPartida(), datos);
+  MODULOS.forEach(m=>{ if(typeof s.mod[m.id] !== 'number') s.mod[m.id]=0; });
+  guardar();
+  crearFichas(); pintarMejoras();
+  $('datosArea').style.display = 'none';
+  $('btnCargar').style.display = 'none';
+  $('datosMsg').textContent = '✓ Partida importada correctamente.';
+};
+
 /* ============ COLOR SEGÚN CALOR ============ */
 function mezclar(a,b,t){
   const h = x=>[1,3,5].map(i=>parseInt(x.substr(i,2),16));
@@ -559,7 +637,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 7;
+const VERSION = 8;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

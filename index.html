@@ -348,8 +348,8 @@ const MODULOS = [
   {id:'turbina',nombre:'Turbina',        base:120,     prod:1},
   {id:'inter',  nombre:'Intercambiador', base:1400,    prod:8},
   {id:'bucle',  nombre:'Bucle de vapor', base:20000,   prod:47},
-  {id:'pozo',   nombre:'Pozo profundo',  base:330000,  prod:260},
-  {id:'manto',  nombre:'Manto',          base:5100000, prod:1400},
+  {id:'pozo',   nombre:'Perforadora profunda', base:330000,  prod:260},
+  {id:'manto',  nombre:'Taladro de diamante',  base:5100000, prod:1400},
   {id:'externo',nombre:'Núcleo externo', base:85000000,    prod:7800},
   {id:'interno',nombre:'Núcleo interno', base:1400000000,  prod:44000},
   {id:'plasma', nombre:'Forja de plasma',base:24000000000, prod:255000}
@@ -363,8 +363,8 @@ const MEJORAS = [
   {id:'m4', nombre:'Doble circuito',       coste:60000,    obj:'inter',   mult:2,   req:s=>s.mod.inter>=10,   nota:'Intercambiadores x2'},
   {id:'m5', nombre:'Blindaje de wolframio',coste:250000,   obj:'global',  mult:1.5, req:s=>s.mod.bucle>=5,    nota:'Producción total x1,5'},
   {id:'m6', nombre:'Presión crítica',      coste:900000,   obj:'bucle',   mult:2,   req:s=>s.mod.bucle>=10,   nota:'Bucles x2'},
-  {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Pozos x2'},
-  {id:'m8', nombre:'Convección forzada',   coste:40000000,    obj:'manto',   mult:2,   req:s=>s.mod.manto>=10,   nota:'Mantos x2'},
+  {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Perforadoras ×2'},
+  {id:'m8', nombre:'Refrigeración forzada',coste:40000000,    obj:'manto',   mult:2,   req:s=>s.mod.manto>=10,   nota:'Taladros ×2'},
   {id:'m9', nombre:'Resonancia sísmica',   coste:150000000,   obj:'global',  mult:1.5, req:s=>s.mod.externo>=5,  nota:'Producción total x1,5'},
   {id:'m10',nombre:'Contención toroidal',  coste:900000000,   obj:'externo', mult:2,   req:s=>s.mod.externo>=10, nota:'Núcleos externos x2'},
   {id:'m11',nombre:'Ignición por láser',   coste:12000000000, obj:'interno', mult:2,   req:s=>s.mod.interno>=10, nota:'Núcleos internos x2'},
@@ -406,7 +406,7 @@ MEJORAS.push(
   {id:'percutor',  nombre:'Percutor hidráulico', coste:2e6,  obj:'toque',    mult:10, req:s=>s.toques>=200, nota:'Extracción manual ×10'},
   {id:'sismografo',nombre:'Sismógrafo',          coste:5e7,  obj:'especial', mult:1,  req:s=>s.toques>=100, nota:'Cada toque suma +5% de tu producción/s'},
   {id:'bateria',   nombre:'Batería geotérmica',  coste:1e7,  obj:'especial', mult:1,  req:s=>s.isotopos>=1, nota:'Progreso sin conexión: 8 h → 24 h'},
-  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Cada isótopo da +8% (antes +5%)'},
+  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Cada isótopo multiplica ×1,07 (antes ×1,05)'},
   {id:'simbiosis', nombre:'Simbiosis de red',    coste:5e10, obj:'global',   mult:2,  req:s=>MODULOS.every(m=>s.mod[m.id]>=25), nota:'Producción total ×2 · con 25 de cada módulo'}
 );
 
@@ -433,8 +433,10 @@ function multiplicadorDe(objetivo){
   return m;
 }
 function bonusGlobal(){
-  const porIso = tieneMejora('enriq') ? 0.08 : 0.05;
-  return multiplicadorDe('global') * (1 + porIso * s.isotopos);
+  // bonus multiplicativo por muestra: cada isótopo compone (antes era lineal y se estancaba)
+  const base = tieneMejora('enriq') ? 1.07 : 1.05;
+  // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
+  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos), 1e300);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal();
@@ -594,7 +596,7 @@ $('nucleo').addEventListener('pointerdown', e=>{
 $('recal').onclick = ()=>{
   const gana = isotoposAlRecalibrar();
   if(gana < 1) return;
-  if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (+${gana*5}% de producción para siempre).\n\n¿Seguimos?`)) return;
+  if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (producción ×${fmt(Math.pow(1.05,gana))} para siempre).\n\n¿Seguimos?`)) return;
   const iso = s.isotopos + gana;
   const vida = {
     totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
@@ -739,9 +741,8 @@ function dibujar(jps){
   tonoActual(jps);
 
   // --- lore: profundidad del pozo ---
-  const prof = profundidad();
-  $('prof').textContent = fmtMetros(prof) + ' m';
-  $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · ' + fmtMetros(prof) + ' m';
+  $('prof').textContent = fmtMetros(profundidad()) + ' m';
+  $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
 
   // anillo: avance hacia el siguiente isótopo
   const actual = isotoposAlRecalibrar();
@@ -783,10 +784,11 @@ function dibujar(jps){
   const boton = $('recal');
   boton.style.display = (gana >= 1) ? 'block' : 'none';
   if(gana >= 1) boton.innerHTML =
-    `Recalibrar por ${gana} isótopo${gana>1?'s':''}<small>reinicia el ciclo · +${gana*5}% permanente</small>`;
+    `Recalibrar por ${gana} isótopo${gana>1?'s':''}<small>reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
 
+  const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
   $('isotopos').textContent = s.isotopos
-    ? s.isotopos+' isótopos · +'+(s.isotopos*5)+'%' : 'sin isótopos';
+    ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos';
 
   // las mejoras solo cambian de estado, no hace falta repintarlas cada fotograma
   const vis = mejorasVisibles();
@@ -855,7 +857,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 14;
+const VERSION = 15;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

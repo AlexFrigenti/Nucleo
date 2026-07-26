@@ -46,6 +46,14 @@ body{
 }
 #offline b{color:var(--calor);font-family:var(--mono);font-weight:600}
 
+/* --- aviso de nueva versión --- */
+#actualiza{
+  display:none;border:1px solid var(--frio);background:var(--capa);
+  border-radius:12px;padding:12px 13px;margin-bottom:16px;cursor:pointer;
+  font-size:13px;color:var(--frio);line-height:1.45;font-weight:600;text-align:center;
+}
+#actualiza:active{background:var(--capa-alta)}
+
 /* --- el núcleo --- */
 #nucleo{
   position:relative;display:flex;flex-direction:column;align-items:center;
@@ -126,6 +134,7 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 }
 </style>
 
+<div id="actualiza"></div>
 <div id="offline"></div>
 
 <p class="eyebrow" style="text-align:center">Reactor geotérmico · sondeo profundo</p>
@@ -165,6 +174,7 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 
 <footer>
   <span id="isotopos"></span>
+  <span id="version"></span>
   <button id="borrar">borrar partida</button>
 </footer>
 
@@ -479,10 +489,48 @@ window.addEventListener('pagehide', guardar);
 
 cargar();
 
-// Registra el service worker: guarda una copia del juego para uso sin conexión.
+/* ============ SISTEMA DE ACTUALIZACIÓN ============
+   VERSION: súbela en 1 cada vez que publiques cambios,
+   y pon el mismo número en el archivo version.json.
+   Así la app sabe cuándo hay algo nuevo publicado. */
+const VERSION = 5;
+$('version').textContent = 'v' + VERSION;
+
+// Registra el service worker (copia offline). Cuando confirme que
+// ha refrescado la copia, recargamos para mostrar lo nuevo.
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   });
+  navigator.serviceWorker.addEventListener('message', e=>{
+    if(e.data === 'actualizado') location.reload();
+  });
 }
+
+// Comprueba en silencio si hay una versión más nueva publicada.
+function comprobarActualizacion(){
+  fetch('./version.json', {cache:'no-store'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d && d.v > VERSION){
+        const b = $('actualiza');
+        b.textContent = '✨ Nueva versión disponible · toca para actualizar';
+        b.style.display = 'block';
+        b.onclick = ()=>{
+          b.textContent = 'Actualizando…';
+          const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+          if(sw){
+            sw.postMessage('actualizar');
+            setTimeout(()=>location.reload(), 2000); // red de seguridad
+          }else{
+            location.reload();
+          }
+        };
+      }
+    })
+    .catch(()=>{ /* sin conexión: no pasa nada */ });
+}
+comprobarActualizacion();
+// Vuelve a comprobar cada vez que regresas a la app.
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) comprobarActualizacion(); });
 </script>

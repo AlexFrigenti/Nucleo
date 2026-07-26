@@ -333,6 +333,17 @@ MEJORAS.push({
   req:s=>s.mod.interno>=15, nota:'Producción total ×2'
 });
 
+/* ---- mejoras especiales: mecánicas distintas, no solo ×N de un módulo ----
+   Las de obj:'especial' no multiplican nada por sí solas; su efecto está
+   enganchado a mano en el código (busca tieneMejora('id')). */
+MEJORAS.push(
+  {id:'percutor',  nombre:'Percutor hidráulico', coste:2e6,  obj:'toque',    mult:10, req:s=>s.toques>=200, nota:'Extracción manual ×10'},
+  {id:'sismografo',nombre:'Sismógrafo',          coste:5e7,  obj:'especial', mult:1,  req:s=>s.toques>=100, nota:'Cada toque suma +5% de tu producción/s'},
+  {id:'bateria',   nombre:'Batería geotérmica',  coste:1e7,  obj:'especial', mult:1,  req:s=>s.isotopos>=1, nota:'Progreso sin conexión: 8 h → 24 h'},
+  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Cada isótopo da +8% (antes +5%)'},
+  {id:'simbiosis', nombre:'Simbiosis de red',    coste:5e10, obj:'global',   mult:2,  req:s=>MODULOS.every(m=>s.mod[m.id]>=25), nota:'Producción total ×2 · con 25 de cada módulo'}
+);
+
 const UMBRAL = 1e6;                    // julios por el primer isótopo
 const TOPE_AUSENTE = 8*3600;           // máximo 8 h de progreso sin abrir
 
@@ -355,7 +366,8 @@ function multiplicadorDe(objetivo){
   return m;
 }
 function bonusGlobal(){
-  return multiplicadorDe('global') * (1 + 0.05 * s.isotopos);
+  const porIso = tieneMejora('enriq') ? 0.08 : 0.05;
+  return multiplicadorDe('global') * (1 + porIso * s.isotopos);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal();
@@ -493,7 +505,7 @@ function colorNivel(n){
 
 /* ============ TOQUE EN EL NÚCLEO ============ */
 $('nucleo').addEventListener('pointerdown', e=>{
-  const g = porToque();
+  const g = porToque() + (tieneMejora('sismografo') ? 0.05 * porSegundo() : 0);
   s.j += g; s.totalCiclo += g; s.toques++;
   const chispa = document.createElement('div');
   chispa.className='chispa'; chispa.textContent='+'+fmt(g);
@@ -693,7 +705,8 @@ async function cargar(){
       s = Object.assign(nuevaPartida(), d);
       MODULOS.forEach(m=>{ if(typeof s.mod[m.id] !== 'number') s.mod[m.id]=0; });
 
-      const fuera = Math.min((Date.now() - (d.t||Date.now()))/1000, TOPE_AUSENTE);
+      const tope = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
+      const fuera = Math.min((Date.now() - (d.t||Date.now()))/1000, tope);
       if(fuera > 60){
         const extra = porSegundo() * fuera;
         if(extra > 0){
@@ -720,7 +733,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 10;
+const VERSION = 11;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

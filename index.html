@@ -165,13 +165,23 @@ section{margin-bottom:26px}
 #recal small{display:block;font-weight:400;font-size:11px;opacity:.75;margin-top:3px;
   font-family:var(--mono)}
 
+/* --- estadísticas --- */
+#secStats #statsPanel{display:none;margin-top:2px}
+#secStats .stat-fila{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:10px 2px;border-bottom:1px solid var(--linea);font-size:13px;
+}
+#secStats .stat-fila:last-child{border-bottom:none}
+#secStats .stat-fila .etq{color:var(--tenue)}
+#secStats .stat-fila .val{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
 /* --- sincronizar partida --- */
-#secDatos .datos-btn{
+#secDatos .datos-btn,#secStats .datos-btn{
   width:100%;padding:13px 14px;border-radius:12px;margin-bottom:8px;
   background:var(--capa);border:1px solid var(--linea);color:var(--texto);
   font-family:var(--sans);font-size:14px;font-weight:600;text-align:left;
 }
-#secDatos .datos-btn:active{background:var(--capa-alta)}
+#secDatos .datos-btn:active,#secStats .datos-btn:active{background:var(--capa-alta)}
 #secDatos #btnCargar{display:none;border-color:var(--frio);color:var(--frio)}
 #secDatos #datosArea{
   display:none;width:100%;min-height:72px;margin-bottom:8px;padding:11px 13px;
@@ -240,6 +250,11 @@ footer{display:flex;justify-content:space-between;font-size:11px;color:var(--ten
 
 <section>
   <button id="recal"></button>
+</section>
+
+<section id="secStats">
+  <button class="datos-btn" id="btnStats">Ver estadísticas</button>
+  <div id="statsPanel"></div>
 </section>
 
 <section id="secDatos">
@@ -351,7 +366,8 @@ const TOPE_AUSENTE = 8*3600;           // máximo 8 h de progreso sin abrir
 let s = nuevaPartida();
 function nuevaPartida(){
   const mod = {}; MODULOS.forEach(m=>mod[m.id]=0);
-  return { j:0, totalCiclo:0, mod, mejoras:[], isotopos:0, toques:0, t:Date.now() };
+  return { j:0, totalCiclo:0, mod, mejoras:[], isotopos:0, toques:0, t:Date.now(),
+           totalVida:0, tiempoJuego:0, mejorTasa:0, toquesVida:0, recalibraciones:0 };
 }
 
 /* ============ CÁLCULOS ============ */
@@ -506,7 +522,7 @@ function colorNivel(n){
 /* ============ TOQUE EN EL NÚCLEO ============ */
 $('nucleo').addEventListener('pointerdown', e=>{
   const g = porToque() + (tieneMejora('sismografo') ? 0.05 * porSegundo() : 0);
-  s.j += g; s.totalCiclo += g; s.toques++;
+  s.j += g; s.totalCiclo += g; s.totalVida += g; s.toques++; s.toquesVida++;
   const chispa = document.createElement('div');
   chispa.className='chispa'; chispa.textContent='+'+fmt(g);
   const caja = $('nucleo').getBoundingClientRect();
@@ -523,13 +539,42 @@ $('recal').onclick = ()=>{
   if(gana < 1) return;
   if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (+${gana*5}% de producción para siempre).\n\n¿Seguimos?`)) return;
   const iso = s.isotopos + gana;
-  s = nuevaPartida(); s.isotopos = iso;
+  const vida = {
+    totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
+    toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1
+  };
+  s = nuevaPartida(); s.isotopos = iso; Object.assign(s, vida);
   pintarMejoras(); guardar();
 };
 
 $('borrar').onclick = ()=>{
   if(!confirm('Se borra todo, incluidos los isótopos. ¿Seguro?')) return;
   s = nuevaPartida(); pintarMejoras(); guardar();
+};
+
+/* ============ ESTADÍSTICAS ============ */
+function renderStats(){
+  const totalModulos = MODULOS.reduce((t,m)=>t+s.mod[m.id], 0);
+  const filas = [
+    ['Tiempo jugado',       fmtTiempo(s.tiempoJuego)],
+    ['Julios de por vida',  fmt(s.totalVida)],
+    ['Mejor producción',    fmt(s.mejorTasa)+' J/s'],
+    ['Producción actual',   fmt(porSegundo())+' J/s'],
+    ['Toques de por vida',  fmt(s.toquesVida)],
+    ['Módulos instalados',  fmt(totalModulos)],
+    ['Isótopos',            s.isotopos],
+    ['Recalibraciones',     s.recalibraciones||0]
+  ];
+  $('statsPanel').innerHTML = filas.map(f=>
+    `<div class="stat-fila"><span class="etq">${f[0]}</span><span class="val">${f[1]}</span></div>`
+  ).join('');
+}
+$('btnStats').onclick = ()=>{
+  const p = $('statsPanel');
+  const abrir = getComputedStyle(p).display === 'none';
+  p.style.display = abrir ? 'block' : 'none';
+  $('btnStats').textContent = abrir ? 'Ocultar estadísticas' : 'Ver estadísticas';
+  if(abrir) renderStats();
 };
 
 /* ============ EXPORTAR / IMPORTAR PARTIDA ============
@@ -620,10 +665,15 @@ function bucle(ahora){
 
   const jps = porSegundo();
   const ganado = jps * dt;
-  s.j += ganado; s.totalCiclo += ganado;
+  s.j += ganado; s.totalCiclo += ganado; s.totalVida += ganado;
+  s.tiempoJuego += dt;
+  if(jps > s.mejorTasa) s.mejorTasa = jps;
 
   acumTic += dt;
-  if(acumTic >= 1){ acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica(); }
+  if(acumTic >= 1){
+    acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
+    if($('statsPanel') && $('statsPanel').style.display === 'block') renderStats();
+  }
 
   acumGuardado += dt;
   if(acumGuardado >= 5){ acumGuardado = 0; guardar(); }
@@ -704,6 +754,8 @@ async function cargar(){
       const d = JSON.parse(bruto);
       s = Object.assign(nuevaPartida(), d);
       MODULOS.forEach(m=>{ if(typeof s.mod[m.id] !== 'number') s.mod[m.id]=0; });
+      if(typeof d.totalVida !== 'number') s.totalVida = s.totalCiclo;
+      if(typeof d.toquesVida !== 'number') s.toquesVida = s.toques;
 
       const tope = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
       const fuera = Math.min((Date.now() - (d.t||Date.now()))/1000, tope);
@@ -733,7 +785,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 11;
+const VERSION = 12;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

@@ -75,6 +75,9 @@ body{
   align-items:center;justify-content:center;gap:3px;pointer-events:none}
 #julios{font-family:var(--mono);font-size:34px;font-weight:600;
   font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#prof{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tenue);
+  font-variant-numeric:tabular-nums;letter-spacing:.03em;margin-top:1px}
+#cabPozo{text-transform:none;font-family:var(--mono)}
 #tasa{font-family:var(--mono);font-size:14px;color:var(--tono);
   font-variant-numeric:tabular-nums;transition:color .8s linear}
 #restante{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);margin-top:2px}
@@ -235,7 +238,7 @@ section{margin-bottom:26px}
 
 <!-- ===== CABECERA: siempre visible en todas las pestañas ===== -->
 <header id="cabecera">
-  <p class="eyebrow" style="text-align:center">Reactor geotérmico · sondeo profundo</p>
+  <p class="eyebrow" id="cabPozo" style="text-align:center">POZO 01 · 0 m</p>
 
   <div id="nucleo">
     <div id="halo"></div>
@@ -246,6 +249,7 @@ section{margin-bottom:26px}
     </svg>
     <div id="lectura">
       <div id="julios">0</div>
+      <div id="prof">0 m</div>
       <div id="tasa">0 J/s</div>
       <div id="restante">toca para extraer</div>
     </div>
@@ -478,6 +482,9 @@ function fmtTiempo(seg){
   if(m) return m+' min';
   return Math.floor(seg)+' s';
 }
+// profundidad del pozo (m) = raíz de los julios producidos este ciclo
+function profundidad(){ return Math.floor(Math.sqrt(Math.max(0, s.totalCiclo))); }
+function fmtMetros(n){ return Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
 /* ============ CONSTRUCCIÓN DE LA INTERFAZ ============ */
 const $ = id => document.getElementById(id);
@@ -731,6 +738,11 @@ function dibujar(jps){
   $('tasa').textContent = fmt(jps)+' J/s';
   tonoActual(jps);
 
+  // --- lore: profundidad del pozo ---
+  const prof = profundidad();
+  $('prof').textContent = fmtMetros(prof) + ' m';
+  $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · ' + fmtMetros(prof) + ' m';
+
   // anillo: avance hacia el siguiente isótopo
   const actual = isotoposAlRecalibrar();
   const desde = Math.pow(actual,2)*UMBRAL;
@@ -843,7 +855,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 13;
+const VERSION = 14;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

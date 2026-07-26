@@ -1,0 +1,11 @@
+{
+  "name": "Núcleo",
+  "short_name": "Núcleo",
+  "description": "Reactor geotérmico · sondeo profundo",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1218",
+  "theme_color": "#0E1218"
+}

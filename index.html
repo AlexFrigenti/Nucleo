@@ -5,6 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Núcleo">
 <meta name="theme-color" content="#0E1218">
+<link rel="manifest" href="./manifest.webmanifest">
 <title>Núcleo</title>
 
 <style>
@@ -467,4 +468,11 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) guardar(
 window.addEventListener('pagehide', guardar);
 
 cargar();
+
+// Registra el service worker: guarda una copia del juego para uso sin conexión.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
 </script>

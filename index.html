@@ -305,6 +305,34 @@ const MEJORAS = [
   {id:'m12',nombre:'Campo de Higgs',       coste:100000000000,obj:'plasma',  mult:3,   req:s=>s.mod.plasma>=10,  nota:'Forjas de plasma x3'}
 ];
 
+/* ---- niveles de mejora generados para cada módulo ----
+   Cada módulo ya tiene su mejora "I" (arriba). Aquí añadimos II, III, IV y V,
+   que se desbloquean al tener 25, 50, 100 y 200 de ese módulo. */
+const TIERS_MOD = [
+  {req:25,  etiqueta:'II',  mult:3, factor:5e3},
+  {req:50,  etiqueta:'III', mult:3, factor:1.6e5},
+  {req:100, etiqueta:'IV',  mult:4, factor:1.8e8},
+  {req:200, etiqueta:'V',   mult:5, factor:2e14}
+];
+MODULOS.forEach(m=>{
+  TIERS_MOD.forEach(t=>{
+    MEJORAS.push({
+      id: m.id + t.req,
+      nombre: m.nombre + ' ' + t.etiqueta,
+      coste: Math.round(m.base * t.factor),
+      obj: m.id,
+      mult: t.mult,
+      req: ((id,req)=> st => st.mod[id] >= req)(m.id, t.req),
+      nota: m.nombre + ' ×' + t.mult
+    });
+  });
+});
+// mejora global potente de remate
+MEJORAS.push({
+  id:'superc', nombre:'Superconductor', coste:5e11, obj:'global', mult:2,
+  req:s=>s.mod.interno>=15, nota:'Producción total ×2'
+});
+
 const UMBRAL = 1e6;                    // julios por el primer isótopo
 const TOPE_AUSENTE = 8*3600;           // máximo 8 h de progreso sin abrir
 
@@ -317,6 +345,10 @@ function nuevaPartida(){
 
 /* ============ CÁLCULOS ============ */
 const tieneMejora = id => s.mejoras.includes(id);
+// mejoras que puedes ver ahora (no compradas y con su requisito cumplido), baratas primero
+function mejorasVisibles(){
+  return MEJORAS.filter(u=>!tieneMejora(u.id) && u.req(s)).sort((a,b)=>a.coste-b.coste);
+}
 function multiplicadorDe(objetivo){
   let m = 1;
   MEJORAS.forEach(u=>{ if(u.obj===objetivo && tieneMejora(u.id)) m *= u.mult; });
@@ -408,7 +440,7 @@ function crearFichas(){
 
 function pintarMejoras(){
   const cu = $('mejoras'); cu.innerHTML='';
-  const visibles = MEJORAS.filter(u=>!tieneMejora(u.id) && u.req(s));
+  const visibles = mejorasVisibles();
   $('secMejoras').style.display = visibles.length ? 'block' : 'none';
   visibles.forEach(u=>{
     const b = document.createElement('button');
@@ -639,8 +671,9 @@ function dibujar(jps){
     ? s.isotopos+' isótopos · +'+(s.isotopos*5)+'%' : 'sin isótopos';
 
   // las mejoras solo cambian de estado, no hace falta repintarlas cada fotograma
+  const vis = mejorasVisibles();
   document.querySelectorAll('#mejoras .ficha').forEach((b,i)=>{
-    const u = MEJORAS.filter(x=>!tieneMejora(x.id) && x.req(s))[i];
+    const u = vis[i];
     if(!u) return;
     const puedo = s.j >= u.coste;
     b.disabled = !puedo; b.classList.toggle('asequible', puedo);
@@ -687,7 +720,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 9;
+const VERSION = 10;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

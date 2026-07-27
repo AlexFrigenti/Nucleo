@@ -295,6 +295,26 @@ section{margin-bottom:26px}
 }
 #cierre button:active{background:rgba(79,195,217,.1)}
 
+/* --- hitos --- */
+#hitosResumen{color:var(--frio)}
+.hito{border:1px solid var(--linea);border-radius:10px;padding:10px 12px;margin-bottom:8px;
+  opacity:.42;transition:opacity .2s,border-color .2s}
+.hito.logrado{opacity:1;border-color:rgba(79,195,217,.4)}
+.hito .hito-nom{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--tenue)}
+.hito.logrado .hito-nom{color:var(--frio)}
+.hito .hito-desc{font-size:12px;color:var(--tenue);margin-top:3px;line-height:1.4}
+
+/* --- toast de hito --- */
+#hitoToast{
+  position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);z-index:60;
+  transform:translateX(-50%) translateY(-16px);
+  background:var(--capa-alta);border:1px solid var(--frio);color:var(--frio);
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.05em;
+  padding:10px 16px;border-radius:10px;max-width:90%;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
+}
+#hitoToast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
 /* --- +N flotante --- */
 .chispa{position:absolute;font-family:var(--mono);font-size:15px;font-weight:600;
   color:var(--tono);pointer-events:none;animation:subir .7s ease-out forwards}
@@ -379,6 +399,8 @@ section{margin-bottom:26px}
   <section class="pagina oculta" data-pag="stats">
     <h2>Estadísticas</h2>
     <div id="statsPanel"></div>
+    <h2 style="margin-top:24px">Hitos <span id="hitosResumen"></span></h2>
+    <div id="hitosLista"></div>
   </section>
 
   <section class="pagina oculta" data-pag="ajustes" id="secDatos">
@@ -428,6 +450,8 @@ section{margin-bottom:26px}
     <button id="cierreOk">Emplazar nuevo pozo</button>
   </div>
 </div>
+
+<div id="hitoToast"></div>
 
 <script src="./registro.js"></script>
 <script>
@@ -526,7 +550,7 @@ function nuevaPartida(){
   const mod = {}; MODULOS.forEach(m=>mod[m.id]=0);
   return { j:0, totalCiclo:0, mod, mejoras:[], isotopos:0, toques:0, t:Date.now(),
            totalVida:0, tiempoJuego:0, mejorTasa:0, toquesVida:0, recalibraciones:0,
-           registro:[], registroLeidos:[] };
+           registro:[], registroLeidos:[], logros:[] };
 }
 
 /* ============ CÁLCULOS ============ */
@@ -543,8 +567,9 @@ function multiplicadorDe(objetivo){
 function bonusGlobal(){
   // bonus multiplicativo por muestra: cada isótopo compone (antes era lineal y se estancaba)
   const base = tieneMejora('enriq') ? 1.07 : 1.05;
+  const bonusHitos = 1 + 0.02 * (s.logros ? s.logros.length : 0);
   // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
-  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos), 1e300);
+  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos, 1e300);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal();
@@ -733,7 +758,8 @@ function hacerRecalibrado(gana){
   const vida = {
     totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
     toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1,
-    registro: s.registro, registroLeidos: s.registroLeidos  // el registro NO se pierde
+    registro: s.registro, registroLeidos: s.registroLeidos,  // el registro NO se pierde
+    logros: s.logros                                          // los hitos tampoco
   };
   s = nuevaPartida(); s.isotopos = iso; Object.assign(s, vida);
   pintarMejoras(); guardar();
@@ -798,6 +824,63 @@ function pintarRegistro(){
     div.className = 'reg-entrada' + (e.final ? ' final' : '');
     div.innerHTML = `<div class="reg-cab">REG-${e.id} · ${fmtMetros(e.m)} m</div><div class="reg-txt"></div>`;
     div.querySelector('.reg-txt').textContent = e.txt;
+    cont.appendChild(div);
+  });
+}
+
+/* ============ HITOS ============ */
+const totalModulos = () => MODULOS.reduce((t,m)=>t+s.mod[m.id], 0);
+const LOGROS = [
+  {id:'arranque',   nombre:'ARRANQUE',                 desc:'Instala el primer módulo.',          cond:()=>totalModulos()>=1},
+  {id:'mejora1',    nombre:'PRIMERA CALIBRACIÓN',      desc:'Compra una mejora.',                 cond:()=>s.mejoras.length>=1},
+  {id:'km1',        nombre:'PRIMER KILÓMETRO',         desc:'Alcanza 1.000 m.',                   cond:()=>profundidad()>=1000},
+  {id:'toques100',  nombre:'EXTRACCIÓN MANUAL',        desc:'100 extracciones manuales.',         cond:()=>s.toquesVida>=100},
+  {id:'cierre1',    nombre:'PRIMER CIERRE',            desc:'Cierra un pozo y abre otro.',        cond:()=>s.recalibraciones>=1},
+  {id:'muestra1',   nombre:'PRIMERA MUESTRA',          desc:'Sube 1 isótopo a superficie.',       cond:()=>s.isotopos>=1},
+  {id:'tasa1k',     nombre:'1 kJ/s',                   desc:'Producción máxima de 1.000 J/s.',    cond:()=>s.mejorTasa>=1e3},
+  {id:'kola',       nombre:'RÉCORD DE KOLA',           desc:'Alcanza 12.262 m.',                  cond:()=>profundidad()>=12262},
+  {id:'cien',       nombre:'CIEN SONDAS',              desc:'Instala 100 sondas térmicas.',       cond:()=>s.mod.sonda>=100},
+  {id:'toques1k',   nombre:'PERCUSIÓN CONSTANTE',      desc:'1.000 extracciones manuales.',       cond:()=>s.toquesVida>=1000},
+  {id:'moho',       nombre:'DISCONTINUIDAD DE MOHO',   desc:'Atraviesa la corteza (35.000 m).',   cond:()=>profundidad()>=35000},
+  {id:'tasa1M',     nombre:'1 MJ/s',                   desc:'Producción máxima de 1 millón J/s.', cond:()=>s.mejorTasa>=1e6},
+  {id:'catalogo',   nombre:'CATÁLOGO COMPLETO',        desc:'Ten al menos uno de cada módulo.',   cond:()=>MODULOS.every(m=>s.mod[m.id]>=1)},
+  {id:'pozo5',      nombre:'QUINTO EMPLAZAMIENTO',     desc:'Llega al pozo 5.',                   cond:()=>s.recalibraciones>=4},
+  {id:'masiva',     nombre:'INSTALACIÓN MASIVA',       desc:'500 módulos instalados.',            cond:()=>totalModulos()>=500},
+  {id:'manto',      nombre:'MANTO INFERIOR',           desc:'Alcanza 660.000 m.',                 cond:()=>profundidad()>=660000},
+  {id:'tasa1G',     nombre:'1 GJ/s',                   desc:'Producción máxima de 1.000 M J/s.',  cond:()=>s.mejorTasa>=1e9},
+  {id:'muestras100',nombre:'CIEN MUESTRAS',            desc:'Acumula 100 isótopos.',              cond:()=>s.isotopos>=100},
+  {id:'gutenberg',  nombre:'NÚCLEO EXTERNO',           desc:'Alcanza 2.890.000 m.',               cond:()=>profundidad()>=2890000},
+  {id:'pozo10',     nombre:'DÉCIMO EMPLAZAMIENTO',     desc:'Llega al pozo 10.',                  cond:()=>s.recalibraciones>=9},
+  {id:'centro',     nombre:'CENTRO GEOMÉTRICO',        desc:'Alcanza 6.371.000 m.',               cond:()=>profundidad()>=6371000}
+];
+
+function comprobarLogros(){
+  const nuevos = [];
+  LOGROS.forEach(l=>{
+    if(s.logros.includes(l.id)) return;
+    if(l.cond()){ s.logros.push(l.id); nuevos.push(l); }
+  });
+  if(nuevos.length){
+    mostrarHitoToast(nuevos);
+    if(pestanaActiva === 'stats') renderHitos();
+  }
+}
+function mostrarHitoToast(nuevos){
+  const t = $('hitoToast');
+  t.textContent = 'HITO · ' + nuevos[0].nombre + (nuevos.length>1 ? '  (+'+(nuevos.length-1)+')' : '');
+  t.classList.add('on');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('on'), 3500);
+}
+function renderHitos(){
+  const total = LOGROS.length, hechos = s.logros.length;
+  $('hitosResumen').textContent = hechos+'/'+total+' · +'+(hechos*2)+'%';
+  const cont = $('hitosLista'); cont.innerHTML = '';
+  LOGROS.forEach(l=>{
+    const hecho = s.logros.includes(l.id);
+    const div = document.createElement('div');
+    div.className = 'hito' + (hecho ? ' logrado' : '');
+    div.innerHTML = `<div class="hito-nom">${l.nombre}</div><div class="hito-desc">${l.desc}</div>`;
     cont.appendChild(div);
   });
 }
@@ -899,6 +982,7 @@ function bucle(ahora){
     acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
     if(pestanaActiva === 'stats') renderStats();
     comprobarRegistro();
+    comprobarLogros();
     const dur = Math.max(2.2, 6 - Math.log10(profundidad()+10)*0.5).toFixed(1);
     if(dur !== senalDurActual){ senalDurActual = dur; document.documentElement.style.setProperty('--senal-dur', dur+'s'); }
   }
@@ -1008,7 +1092,7 @@ async function cargar(){
     }catch(e){ /* partida corrupta: empezamos de cero */ }
   }
   crearFichas(); pintarMejoras();
-  comprobarRegistro(); actualizarBadge();
+  comprobarRegistro(); actualizarBadge(); comprobarLogros();
   requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
 }
 
@@ -1025,7 +1109,7 @@ function mostrarPagina(id){
   _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
   _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
   if(id === 'mejoras')  pintarMejoras();
-  if(id === 'stats')    renderStats();
+  if(id === 'stats'){   renderStats(); renderHitos(); }
   if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
   window.scrollTo(0, 0);
 }
@@ -1046,7 +1130,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 18;
+const VERSION = 19;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

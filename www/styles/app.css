@@ -388,3 +388,26 @@ section{margin-bottom:26px}
 #isotopos{text-align:left;padding-left:2px}
 @media (max-width:355px){.sondeo-instrumentos{grid-template-columns:1fr 108px;gap:7px}.instrumento strong{font-size:11px}.instrumento{padding:5px}.sondeo-subtitulo{font-size:8px}}
 @media (prefers-reduced-motion:reduce){#radarBarrido,.estado-sistema i{animation:none}#marcadorProfundidad{transition:none}}
+
+
+/* ============================================================
+   FASE 3 · MUESTRA ISOTÓPICA Y PROTOCOLO DE RECALIBRACIÓN
+   ============================================================ */
+.muestra-isotopo{margin:2px 0 10px;padding:10px;border:1px solid rgba(79,195,217,.22);background:linear-gradient(135deg,rgba(9,21,28,.96),rgba(16,22,29,.72));position:relative;overflow:hidden}
+.muestra-isotopo::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 22%,rgba(79,195,217,.08) 49%,transparent 74%);transform:translateX(-100%);pointer-events:none}
+.muestra-isotopo.recuperable{border-color:rgba(240,162,46,.65);box-shadow:inset 0 0 18px rgba(240,162,46,.06)}
+.muestra-isotopo.recuperable::after{animation:paso-muestra 2.8s ease-in-out infinite}
+@keyframes paso-muestra{45%,100%{transform:translateX(100%)}}
+.muestra-cab{display:flex;justify-content:space-between;margin-bottom:8px;font:9px var(--mono);letter-spacing:.13em;color:var(--tenue)}
+.muestra-cab span:last-child{color:var(--frio)}.muestra-isotopo.recuperable .muestra-cab span:first-child{color:var(--calor)}
+.muestra-cuerpo{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center}
+.muestra-emblema{width:50px;height:50px;position:relative;display:grid;place-items:center;border:1px solid var(--borde-instrumento);border-radius:50%;color:var(--frio);font:600 18px var(--mono);background:radial-gradient(circle,rgba(79,195,217,.18),transparent 64%)}
+.muestra-isotopo.recuperable .muestra-emblema{border-color:var(--calor);color:var(--calor);box-shadow:0 0 14px rgba(240,162,46,.16)}
+.muestra-emblema i{position:absolute;width:5px;height:5px;border-radius:50%;background:currentColor}.muestra-emblema i:nth-of-type(1){top:4px;left:22px}.muestra-emblema i:nth-of-type(2){right:4px;bottom:11px}.muestra-emblema i:nth-of-type(3){left:7px;bottom:8px}
+.muestra-lectura strong{display:block;font:600 13px var(--mono);letter-spacing:.08em;color:var(--texto)}.muestra-lectura>span{display:block;margin-top:3px;color:var(--tenue);font:9px var(--mono);letter-spacing:.04em}
+.muestra-metricas{display:flex;gap:9px;margin-top:7px;flex-wrap:wrap}.muestra-metricas span{font:8px var(--mono);letter-spacing:.05em;color:var(--tenue)}.muestra-metricas b{font-weight:600;color:var(--frio)}.muestra-isotopo.recuperable .muestra-metricas b{color:var(--calor)}
+.muestra-espectro{height:15px;display:flex;align-items:end;gap:3px;margin-top:8px;border-top:1px solid rgba(79,195,217,.14);padding-top:3px}.muestra-espectro i{display:block;flex:1;background:rgba(79,195,217,.3)}.muestra-espectro i:nth-child(1){height:20%}.muestra-espectro i:nth-child(2){height:45%}.muestra-espectro i:nth-child(3){height:32%}.muestra-espectro i:nth-child(4){height:82%}.muestra-espectro i:nth-child(5){height:42%}.muestra-espectro i:nth-child(6){height:100%}.muestra-espectro i:nth-child(7){height:28%}.muestra-espectro i:nth-child(8){height:62%}.muestra-isotopo.recuperable .muestra-espectro i{background:rgba(240,162,46,.52)}
+#recal{display:none;position:relative;padding:12px 14px 12px 16px;border-color:rgba(79,195,217,.52);background:linear-gradient(90deg,rgba(79,195,217,.1),rgba(79,195,217,.02));}
+#recal::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--frio)}#recal .protocolo-codigo{display:block;margin-bottom:4px;font:9px var(--mono);letter-spacing:.14em;color:var(--frio)}#recal strong{display:block;font-size:13px;letter-spacing:.04em}#recal small{margin-top:5px;line-height:1.35}
+#cierre .caja{border-color:rgba(240,162,46,.48);background:linear-gradient(160deg,#18202a,#11171f)}#cierre .cierre-cab{color:var(--calor)}
+@media (prefers-reduced-motion:reduce){.muestra-isotopo.recuperable::after{animation:none}}

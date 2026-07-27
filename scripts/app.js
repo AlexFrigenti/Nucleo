@@ -80,7 +80,7 @@ MEJORAS.push(
   {id:'percutor',  nombre:'Percutor hidráulico', coste:2e6,  obj:'toque',    mult:10, req:s=>s.toques>=200, nota:'Extracción manual ×10'},
   {id:'sismografo',nombre:'Sismógrafo',          coste:5e7,  obj:'especial', mult:1,  req:s=>s.toques>=100, nota:'Cada toque suma +5% de tu producción/s'},
   {id:'bateria',   nombre:'Batería geotérmica',  coste:1e7,  obj:'especial', mult:1,  req:s=>s.isotopos>=1, nota:'Progreso sin conexión: 8 h → 24 h'},
-  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Cada isótopo multiplica ×1,07 (antes ×1,05)'},
+  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Refuerza el bonus por isótopos (base ×1,15 en vez de ×1,12)'},
   {id:'simbiosis', nombre:'Simbiosis de red',    coste:5e10, obj:'global',   mult:2,  req:s=>MODULOS.every(m=>s.mod[m.id]>=25), nota:'Producción total ×2 · con 25 de cada módulo'}
 );
 
@@ -115,12 +115,21 @@ function multiplicadorDe(objetivo){
   MEJORAS.forEach(u=>{ if(u.obj===objetivo && tieneMejora(u.id)) m *= u.mult; });
   return m;
 }
+// Bonus por isótopos con rendimientos decrecientes (base^√I): crece siempre
+// pero NUNCA explota, así el descenso hasta el centro es un reto largo y
+// escalonado (~25 h de juego óptimo) en vez de reventarse en un solo pozo.
+function baseIsotopo(){ return tieneMejora('enriq') ? 1.15 : 1.12; }
+function bonusIsotopos(I){ return Math.pow(baseIsotopo(), Math.sqrt(Math.max(0, I))); }
+// Multiplicador PERMANENTE que se gana al recalibrar sumando `gana` isótopos.
+// Usa la base sin Enriquecimiento porque las mejoras se pierden al recalibrar.
+function gananciaRecalibrado(gana){
+  const I = Math.max(0, s.isotopos);
+  return Math.pow(1.12, Math.sqrt(I + gana) - Math.sqrt(I));
+}
 function bonusGlobal(){
-  // bonus multiplicativo por muestra: cada isótopo compone (antes era lineal y se estancaba)
-  const base = tieneMejora('enriq') ? 1.07 : 1.05;
   const bonusHitos = 1 + 0.02 * (s.logros ? s.logros.length : 0);
   // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
-  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')) * (1 + .02 * resonanciaDe('ni62')) * (1 + .02 * matricesDelta()) * bonusObjetivoEstrato('global'), 1e300);
+  return Math.min(multiplicadorDe('global') * bonusIsotopos(s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')) * (1 + .02 * resonanciaDe('ni62')) * (1 + .02 * matricesDelta()) * bonusObjetivoEstrato('global'), 1e300);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal() * (s.isotopoActivo === 'he3' ? 1.25 : 1);
@@ -503,7 +512,7 @@ function mostrarCierre(gana){
   $('cierreTxt').textContent = 'El cierre reinicia julios, módulos y mejoras del pozo actual. Estas mejoras se conservarán de forma permanente en el siguiente emplazamiento.';
   const lineas = lineasProtocoloDelta();
   $('cierreDetalle').innerHTML = [
-    '<div class="delta-linea base"><strong>RECALIBRACIÓN BASE</strong><span>+' + gana + ' isótopo' + (gana>1?'s':'') + ' · producción ×' + fmt(Math.pow(1.05,gana)) + '</span></div>',
+    '<div class="delta-linea base"><strong>RECALIBRACIÓN BASE</strong><span>+' + gana + ' isótopo' + (gana>1?'s':'') + ' · producción ×' + fmt(gananciaRecalibrado(gana)) + '</span></div>',
     ...(lineas.length ? lineas.map(linea=>'<div class="delta-linea"><strong>INVESTIGACIÓN</strong><span>' + linea + '</span></div>') : ['<div class="delta-linea vacia"><strong>LABORATORIO</strong><span>Sin muestras en custodia; solo se aplicará la recalibración base.</span></div>'])
   ].join('');
   $('cierreOk').textContent = 'EJECUTAR CALIBRACIÓN';
@@ -954,9 +963,9 @@ function dibujar(jps){
   const boton = $('recal');
   boton.style.display = (gana >= 1) ? 'block' : 'none';
   if(gana >= 1) boton.innerHTML =
-    `<span class="protocolo-codigo">PROTOCOLO Δ-${String((s.recalibraciones||0)+1).padStart(2,'0')}</span><strong>RECALIBRAR INSTRUMENTACIÓN</strong><small>Recuperar ${gana} isótopo${gana>1?'s':''} · ${totalMuestrasPendientes() ? 'integrar ' + totalMuestrasPendientes() + ' muestra' + (totalMuestrasPendientes()>1?'s':'') + ' · ' : ''}reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
+    `<span class="protocolo-codigo">PROTOCOLO Δ-${String((s.recalibraciones||0)+1).padStart(2,'0')}</span><strong>RECALIBRAR INSTRUMENTACIÓN</strong><small>Recuperar ${gana} isótopo${gana>1?'s':''} · ${totalMuestrasPendientes() ? 'integrar ' + totalMuestrasPendientes() + ' muestra' + (totalMuestrasPendientes()>1?'s':'') + ' · ' : ''}reinicia el ciclo · ×${fmt(gananciaRecalibrado(gana))} permanente</small>`;
 
-  const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
+  const multIso = bonusIsotopos(s.isotopos);
   const laboratorio = totalMuestrasPendientes() ? ' · '+totalMuestrasPendientes()+' muestra'+(totalMuestrasPendientes()>1?'s':'')+' en custodia' : '';
   $('isotopos').textContent = (s.isotopos ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos') + laboratorio;
   dibujarEquipo(jps);
@@ -1123,7 +1132,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 32;
+const VERSION = 33;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

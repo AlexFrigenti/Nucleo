@@ -323,8 +323,6 @@ section{margin-bottom:26px}
   background:linear-gradient(180deg,rgba(29,37,48,.72),rgba(14,18,24,.35));
   padding:14px 12px 10px;box-shadow:var(--sombra-panel);
 }
-.pagina-equipo .subseccion{margin-bottom:28px}
-.pagina-equipo .subseccion:last-child{margin-bottom:0}
 .nav-tab{min-height:56px}
 @media (min-width:700px){
   body{max-width:760px;padding-left:24px;padding-right:24px}
@@ -338,7 +336,7 @@ section{margin-bottom:26px}
    ============================================================ */
 .pagina-sondeo #cabecera{padding:14px 12px 12px;overflow:hidden;position:relative}
 .pagina-sondeo #cabecera::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.38;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;mask-image:linear-gradient(#000,transparent 72%)}
-.sondeo-cab,.sondeo-instrumentos,#perfilGeologico,#telemetria,#recal,#isotopos,#senal{position:relative;z-index:1}
+.sondeo-cab,.sondeo-instrumentos,#perfilGeologico,#telemetria,#recal,#isotopos,#senal,.sondeo-equipo{position:relative;z-index:1}
 .sondeo-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid var(--borde-instrumento);padding:0 0 10px}
 #cabPozo{font-size:10px;color:var(--texto);letter-spacing:.12em;text-align:left!important}
 .sondeo-subtitulo{margin-top:4px;font:9px var(--mono);letter-spacing:.1em;color:var(--tenue)}
@@ -427,7 +425,10 @@ section{margin-bottom:26px}
 .equipo-resumen strong{display:block;margin:5px 0 3px;font:600 clamp(16px,4.5vw,21px) var(--mono);letter-spacing:-.07em;color:var(--frio);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
 .equipo-resumen small{font-size:7px;color:rgba(124,139,158,.78)}
 .subseccion-cab h2{margin-bottom:10px}.subseccion-cab h2 span{color:var(--tono);font-size:8px;letter-spacing:.06em}
-.pagina-equipo .subseccion{margin-bottom:26px}.pagina-equipo .subseccion:last-child{margin-bottom:0}
+.sondeo-equipo{margin:24px -2px 0;padding:15px 2px 0;border-top:1px solid var(--borde-instrumento)}
+.equipo-integrado-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}.equipo-integrado-cab .eyebrow{margin:0;color:var(--tenue)}
+.equipo-integrado-cab h2{margin:4px 0 0;padding:0;border:0;font:600 18px var(--sans);letter-spacing:-.025em;text-transform:none;color:var(--texto)}
+.sondeo-equipo .subseccion{margin-bottom:18px}.sondeo-equipo .subseccion:last-child{margin-bottom:0}
 #selCompra{padding:4px;background:rgba(5,9,13,.36);border:1px solid var(--borde-instrumento);border-radius:11px}
 #selCompra .sel{min-height:38px;border:0;background:transparent;border-radius:7px;font-size:11px}
 #selCompra .sel.activo{background:rgba(79,195,217,.12);box-shadow:inset 0 0 0 1px rgba(79,195,217,.28)}
@@ -440,6 +441,8 @@ section{margin-bottom:26px}
 .ficha.modulo.asequible{border-color:rgba(240,162,46,.38)}.ficha.modulo.asequible::before{background:var(--calor)}
 .ficha.mejora{position:relative;min-height:68px;padding:12px 13px;border-style:solid;border-left:3px solid rgba(79,195,217,.35);background:linear-gradient(100deg,rgba(18,31,39,.9),rgba(22,28,37,.9))}
 .ficha.mejora .nombre{font:600 13px var(--mono);letter-spacing:.03em}.ficha.mejora .detalle{font-size:10px}.ficha.mejora.asequible{border-color:rgba(240,162,46,.62);background:linear-gradient(100deg,rgba(52,39,20,.5),rgba(22,28,37,.94))}
+.equipo-mejoras{border-top:1px solid var(--borde-instrumento);padding-top:9px}
+.alternar-mejoras{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:8px 3px;background:transparent;border:0;color:var(--texto);text-align:left}.alternar-mejoras span{display:flex;align-items:baseline;gap:8px}.alternar-mejoras b{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}.alternar-mejoras small{font:8px var(--mono);letter-spacing:.07em;color:var(--tono)}.alternar-mejoras i{font:20px/1 var(--sans);color:var(--frio);transition:transform .2s ease}.alternar-mejoras[aria-expanded="true"] i{transform:rotate(180deg)}#panelMejoras{padding-top:5px}
 .pagina-sistema section{margin-bottom:20px}.pagina-sistema section:last-child{margin-bottom:0}
 .estado-sistema-panel{padding:11px;border:1px solid var(--borde-instrumento);border-radius:12px;background:linear-gradient(145deg,rgba(12,23,30,.88),rgba(17,23,31,.7))}
 .salud-cab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font:9px var(--mono);letter-spacing:.1em;color:var(--tenue)}.salud-cab strong{color:var(--frio);font-size:9px}

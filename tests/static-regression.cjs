@@ -8,7 +8,7 @@ const build = read('build.js');
 const sw = read('sw.js');
 
 assert(html.includes('data-pag="sondeo"'), 'Falta la página Sondeo');
-assert(html.includes('data-pag="equipo"'), 'Falta la página Equipo');
+assert(!html.includes('data-pag="equipo"'), 'Equipo debe estar integrado dentro de Sondeo');
 assert(html.includes('data-pag="sistema"'), 'Falta la página Sistema');
 assert(html.includes('./styles/app.css'), 'Falta la hoja de estilos externa');
 assert(html.includes('./scripts/app.js'), 'Falta el script externo');
@@ -39,11 +39,14 @@ assert(app.includes('PROTOCOLO Δ-'), 'Falta el protocolo visual de recalibraci�
 assert(html.includes('id="estadoSistema"'), 'Falta el panel de salud del sistema');
 assert(html.includes('id="eventosRecientes"'), 'Falta el feed de eventos recientes');
 assert(html.includes('id="capacidadEquipo"'), 'Falta el resumen operativo de Equipo');
+assert(html.includes('class="sondeo-equipo"'), 'Falta el equipo integrado en Sondeo');
+assert(html.includes('id="alternarMejoras"'), 'Falta el panel plegable de mejoras');
+assert(!html.includes('data-pag="equipo"'), 'La navegación no debe mantener una pestaña Equipo');
 assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
 assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
 assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
-assert(app.includes('const VERSION = 27'), 'La versión de la aplicación no está actualizada');
-assert(sw.includes("const CACHE = 'nucleo-v9'"), 'La caché offline no se ha renovado');
+assert(app.includes('const VERSION = 28'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v10'"), 'La caché offline no se ha renovado');
 assert(app.includes('activarMicrointeracciones'), 'Falta el feedback de interacción');
 assert(app.includes('activarTransicionEstrato'), 'Falta la transición de estratos');
 assert(app.includes('dispararMuestraDetectada'), 'Falta el feedback de muestra isotópica');

@@ -750,10 +750,6 @@ function bucle(ahora){
 }
 
 function dibujar(jps){
-  if(pestanaActiva === 'equipo'){
-    dibujarEquipo(jps);
-    return;
-  }
   if(pestanaActiva !== 'sondeo') return;
 
   $('julios').textContent = fmt(s.j);
@@ -794,6 +790,7 @@ function dibujar(jps){
   const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
   const laboratorio = totalMuestrasPendientes() ? ' · '+totalMuestrasPendientes()+' muestra'+(totalMuestrasPendientes()>1?'s':'')+' en custodia' : '';
   $('isotopos').textContent = (s.isotopos ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos') + laboratorio;
+  dibujarEquipo(jps);
 }
 
 function dibujarEquipo(jps){
@@ -920,13 +917,21 @@ function mostrarPagina(id){
   document.documentElement.classList.toggle('vista-no-sondeo', id !== 'sondeo');
   _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
   _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
-  if(id === 'equipo')   pintarMejoras();
   if(id === 'sistema') renderSistema();
   if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
   window.scrollTo(0, 0);
   acumRender = INTERVALO_RENDER;
 }
 _navTabs.forEach(t => t.onclick = ()=> mostrarPagina(t.dataset.pag));
+
+const alternarMejoras = $('alternarMejoras');
+const panelMejoras = $('panelMejoras');
+alternarMejoras.onclick = ()=>{
+  const abierto = panelMejoras.hidden;
+  panelMejoras.hidden = !abierto;
+  alternarMejoras.setAttribute('aria-expanded', String(abierto));
+  if(abierto) pintarMejoras();
+};
 
 /* onda de la señal de fondo: seno repetible de 80 px que se desliza en bucle */
 (function pintarSenalFondo(){
@@ -943,7 +948,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 27;
+const VERSION = 28;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que
@@ -1032,7 +1037,7 @@ function dispararMuestraDetectada(){
     }
     const protocolo = evento.target.closest('[data-protocolo]');
     if(protocolo){ resolverMuestra(protocolo.dataset.protocolo); return; }
-    const boton = evento.target.closest('#modulos .ficha, #mejoras .ficha, #recal, #cierreOk, #selCompra .sel, #navbar .nav-tab');
+    const boton = evento.target.closest('#modulos .ficha, #mejoras .ficha, #recal, #cierreOk, #selCompra .sel, #alternarMejoras, #navbar .nav-tab');
     if(!boton || boton.disabled) return;
     reiniciarClase(boton, 'confirmacion-accion');
     if(boton.matches('#modulos .ficha, #mejoras .ficha, #recal')) crearPulsoExtraccion(boton);

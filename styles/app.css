@@ -447,3 +447,62 @@ section{margin-bottom:26px}
 .pagina-sistema .stat-fila{padding:11px 4px;background:linear-gradient(90deg,rgba(29,37,48,.45),transparent)}.pagina-sistema .hito{background:rgba(22,28,37,.55)}
 @media (max-width:355px){.equipo-resumen>div{padding:8px 6px}.equipo-resumen strong{font-size:15px}.ficha.modulo{grid-template-columns:25px 1fr auto auto;column-gap:8px}.ficha.modulo .glifo{width:23px}.ficha.modulo .precio{font-size:11px}.ficha.modulo .nom-tasa{display:none}}
 @media (prefers-reduced-motion:reduce){.salud-medida>i em{transition:none}}
+
+
+/* ============ FASE 5 · MICROANIMACIONES ============ */
+/* Todas las animaciones comunican actividad o una acción confirmada. */
+#radarBarrido{
+  fill:var(--tono);opacity:.09;transform-origin:100px 100px;
+  animation:barrido-radar 5.5s linear infinite;
+}
+.centro-radar{fill:var(--tono);animation:centro-radar 2.4s ease-in-out infinite}
+.radar-radial{fill:none;stroke:var(--grid2);stroke-width:.65}
+.marcas-radar{fill:none;stroke:var(--tono);stroke-width:1;opacity:.58}
+.estado-sistema i,.panel-estado i{
+  display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--frio);
+  box-shadow:0 0 0 0 rgba(79,195,217,.48);animation:baliza 2.6s ease-out infinite;
+}
+#puntoGrafica{fill:var(--tono);stroke:var(--fondo);stroke-width:1.5;animation:punto-telemetria 1.7s ease-in-out infinite}
+#areaGrafica{fill:url(#rellenoGrafica)!important;stroke:none!important;opacity:.85}
+#nucleo{isolation:isolate;transform:translateZ(0)}
+#nucleo.extraccion-activa #anillo{animation:respuesta-extraccion .42s cubic-bezier(.2,.85,.25,1)}
+#nucleo.extraccion-activa #halo{animation:destello-extraccion .55s ease-out}
+#nucleo.extraccion-activa .carga{filter:drop-shadow(0 0 5px var(--tono))}
+.pulso-extraccion{
+  position:absolute;left:var(--x);top:var(--y);width:8px;height:8px;border-radius:50%;
+  border:1px solid var(--tono);pointer-events:none;z-index:3;
+  transform:translate(-50%,-50%);animation:pulso-extraccion .65s ease-out forwards;
+}
+.confirmacion-accion{animation:confirmar-accion .38s ease-out}
+#perfilGeologico.estrato-cambia{animation:transicion-estrato .75s ease-out}
+#perfilGeologico.estrato-cambia .columna-estratos{box-shadow:0 0 0 1px var(--tono),0 0 19px color-mix(in srgb,var(--tono) 25%,transparent)}
+#perfilGeologico.estrato-cambia #marcadorProfundidad{animation:marcador-estrato .75s cubic-bezier(.2,.85,.2,1)}
+.muestra-isotopo.muestra-detectada{animation:detectar-muestra .82s cubic-bezier(.16,.8,.25,1)}
+.muestra-isotopo.muestra-detectada .muestra-emblema{animation:emblema-muestra 1.1s ease-out}
+.muestra-isotopo.recuperable .muestra-espectro i{animation:espectro-vivo 1.8s ease-in-out infinite}
+.muestra-isotopo.recuperable .muestra-espectro i:nth-child(2n){animation-delay:.28s}
+#recal:not([style*="display: none"]){animation:protocolo-listo 2.8s ease-in-out infinite}
+@keyframes barrido-radar{to{transform:rotate(360deg)}}
+@keyframes centro-radar{0%,100%{opacity:.65;r:4.4}50%{opacity:1;r:6.4}}
+@keyframes baliza{0%{box-shadow:0 0 0 0 rgba(79,195,217,.45)}75%,100%{box-shadow:0 0 0 7px rgba(79,195,217,0)}}
+@keyframes punto-telemetria{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 4px var(--tono))}}
+@keyframes respuesta-extraccion{50%{transform:scale(.975)}}
+@keyframes destello-extraccion{0%{opacity:.5;transform:scale(.85)}100%{opacity:0;transform:scale(1.32)}}
+@keyframes pulso-extraccion{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-50%) scale(7)}}
+@keyframes confirmar-accion{45%{transform:translateY(-1px) scale(.985);filter:brightness(1.18)}}
+@keyframes transicion-estrato{0%{filter:brightness(1)}30%{filter:brightness(1.42)}100%{filter:brightness(1)}}
+@keyframes marcador-estrato{0%{transform:translateY(-50%) scaleY(.7)}45%{transform:translateY(-50%) scaleY(1.45)}100%{transform:translateY(-50%) scaleY(1)}}
+@keyframes detectar-muestra{0%{transform:translateY(0);box-shadow:none}38%{transform:translateY(-2px);box-shadow:0 0 0 1px var(--calor),0 0 26px rgba(240,162,46,.23)}100%{transform:translateY(0);box-shadow:none}}
+@keyframes emblema-muestra{0%{transform:scale(.72);filter:brightness(1.8)}60%{transform:scale(1.12)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes espectro-vivo{0%,100%{opacity:.34;transform:scaleY(.55)}50%{opacity:1;transform:scaleY(1)}}
+@keyframes protocolo-listo{0%,100%{box-shadow:0 0 0 rgba(79,195,217,0)}50%{box-shadow:0 0 18px rgba(79,195,217,.18)}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+  #radarBarrido{display:none}
+}
+.aplicacion-pausada #radarBarrido,
+.aplicacion-pausada #halo,
+.aplicacion-pausada .estado-sistema i,
+.aplicacion-pausada .panel-estado i,
+.aplicacion-pausada #puntoGrafica{animation-play-state:paused}

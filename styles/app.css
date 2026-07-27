@@ -411,3 +411,39 @@ section{margin-bottom:26px}
 #recal::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--frio)}#recal .protocolo-codigo{display:block;margin-bottom:4px;font:9px var(--mono);letter-spacing:.14em;color:var(--frio)}#recal strong{display:block;font-size:13px;letter-spacing:.04em}#recal small{margin-top:5px;line-height:1.35}
 #cierre .caja{border-color:rgba(240,162,46,.48);background:linear-gradient(160deg,#18202a,#11171f)}#cierre .cierre-cab{color:var(--calor)}
 @media (prefers-reduced-motion:reduce){.muestra-isotopo.recuperable::after{animation:none}}
+
+
+/* ============================================================
+   FASE 4 · EQUIPO, SALUD DEL SISTEMA Y EVENTOS
+   ============================================================ */
+.panel-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 14px;padding:2px 0 12px;border-bottom:1px solid var(--borde-instrumento)}
+.panel-cab h1{margin-top:4px;font:600 20px var(--sans);letter-spacing:-.035em;color:var(--texto)}
+.panel-estado{display:flex;align-items:center;gap:6px;padding-top:5px;white-space:nowrap;font:9px var(--mono);letter-spacing:.1em;color:var(--frio)}
+.panel-estado i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.equipo-resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:20px}
+.equipo-resumen>div{min-height:76px;padding:9px 8px;background:linear-gradient(145deg,rgba(29,37,48,.85),rgba(14,18,24,.72));border:1px solid var(--borde-instrumento);border-radius:10px}
+.equipo-resumen span,.equipo-resumen small{display:block;font:8px var(--mono);letter-spacing:.08em;color:var(--tenue)}
+.equipo-resumen strong{display:block;margin:5px 0 3px;font:600 clamp(16px,4.5vw,21px) var(--mono);letter-spacing:-.07em;color:var(--frio);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.equipo-resumen small{font-size:7px;color:rgba(124,139,158,.78)}
+.subseccion-cab h2{margin-bottom:10px}.subseccion-cab h2 span{color:var(--tono);font-size:8px;letter-spacing:.06em}
+.pagina-equipo .subseccion{margin-bottom:26px}.pagina-equipo .subseccion:last-child{margin-bottom:0}
+#selCompra{padding:4px;background:rgba(5,9,13,.36);border:1px solid var(--borde-instrumento);border-radius:11px}
+#selCompra .sel{min-height:38px;border:0;background:transparent;border-radius:7px;font-size:11px}
+#selCompra .sel.activo{background:rgba(79,195,217,.12);box-shadow:inset 0 0 0 1px rgba(79,195,217,.28)}
+.ficha.modulo{position:relative;min-height:70px;margin-bottom:7px;padding:12px 12px;border-radius:10px;background:linear-gradient(100deg,rgba(22,28,37,.98),rgba(16,22,29,.92));overflow:hidden}
+.ficha.modulo::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:2px;background:var(--linea);transition:background .5s}
+.ficha.modulo.activo::before{background:var(--tono);box-shadow:0 0 9px var(--tono)}
+.ficha.modulo .cant{min-width:28px;font-size:18px;color:var(--texto)}
+.ficha.modulo .precio{padding:5px 0 5px 7px;border-left:1px solid rgba(124,139,158,.18);font-size:12px}
+.ficha.modulo .detalle{font-size:10px;letter-spacing:.02em}
+.ficha.modulo.asequible{border-color:rgba(240,162,46,.38)}.ficha.modulo.asequible::before{background:var(--calor)}
+.ficha.mejora{position:relative;min-height:68px;padding:12px 13px;border-style:solid;border-left:3px solid rgba(79,195,217,.35);background:linear-gradient(100deg,rgba(18,31,39,.9),rgba(22,28,37,.9))}
+.ficha.mejora .nombre{font:600 13px var(--mono);letter-spacing:.03em}.ficha.mejora .detalle{font-size:10px}.ficha.mejora.asequible{border-color:rgba(240,162,46,.62);background:linear-gradient(100deg,rgba(52,39,20,.5),rgba(22,28,37,.94))}
+.pagina-sistema section{margin-bottom:20px}.pagina-sistema section:last-child{margin-bottom:0}
+.estado-sistema-panel{padding:11px;border:1px solid var(--borde-instrumento);border-radius:12px;background:linear-gradient(145deg,rgba(12,23,30,.88),rgba(17,23,31,.7))}
+.salud-cab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font:9px var(--mono);letter-spacing:.1em;color:var(--tenue)}.salud-cab strong{color:var(--frio);font-size:9px}
+.salud-grid{display:grid;gap:10px}.salud-medida>div{display:flex;justify-content:space-between;align-items:baseline;font:9px var(--mono);letter-spacing:.08em;color:var(--tenue)}.salud-medida b{font-size:12px;color:var(--texto);font-variant-numeric:tabular-nums}.salud-medida>i{display:block;height:5px;margin:5px 0;background:rgba(124,139,158,.18);overflow:hidden}.salud-medida>i em{display:block;width:0;height:100%;background:var(--frio);box-shadow:0 0 7px rgba(79,195,217,.45);transition:width .35s ease}.salud-medida small{font:8px var(--mono);letter-spacing:.06em;color:var(--tenue)}.salud-medida.alerta>i em{background:var(--calor);box-shadow:0 0 7px rgba(240,162,46,.45)}.salud-medida.alerta b{color:var(--calor)}
+.eventos-panel,.estadisticas-panel,.hitos-panel{padding-top:2px}.evento{display:grid;grid-template-columns:10px 1fr;gap:8px;padding:10px 4px;border-bottom:1px solid var(--linea)}.evento:last-child{border-bottom:0}.evento>i{width:6px;height:6px;margin-top:5px;border-radius:50%;background:var(--tenue)}.evento.activo>i,.evento.ok>i{background:var(--frio);box-shadow:0 0 7px var(--frio)}.evento.alerta>i{background:var(--calor);box-shadow:0 0 7px var(--calor)}.evento strong{display:block;font:600 10px var(--mono);letter-spacing:.08em;color:var(--texto)}.evento span{display:block;margin-top:3px;font-size:11px;line-height:1.35;color:var(--tenue)}
+.pagina-sistema .stat-fila{padding:11px 4px;background:linear-gradient(90deg,rgba(29,37,48,.45),transparent)}.pagina-sistema .hito{background:rgba(22,28,37,.55)}
+@media (max-width:355px){.equipo-resumen>div{padding:8px 6px}.equipo-resumen strong{font-size:15px}.ficha.modulo{grid-template-columns:25px 1fr auto auto;column-gap:8px}.ficha.modulo .glifo{width:23px}.ficha.modulo .precio{font-size:11px}.ficha.modulo .nom-tasa{display:none}}
+@media (prefers-reduced-motion:reduce){.salud-medida>i em{transition:none}}

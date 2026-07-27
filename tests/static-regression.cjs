@@ -45,8 +45,8 @@ assert(!html.includes('data-pag="equipo"'), 'La navegación no debe mantener una
 assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
 assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
 assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
-assert(app.includes('const VERSION = 30'), 'La versión de la aplicación no está actualizada');
-assert(sw.includes("const CACHE = 'nucleo-v12'"), 'La caché offline no se ha renovado');
+assert(app.includes('const VERSION = 31'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v13'"), 'La caché offline no se ha renovado');
 assert(app.includes('activarMicrointeracciones'), 'Falta el feedback de interacción');
 assert(app.includes('activarTransicionEstrato'), 'Falta la transición de estratos');
 assert(app.includes('dispararMuestraDetectada'), 'Falta el feedback de muestra isotópica');
@@ -75,3 +75,8 @@ assert(app.includes('function proyeccionDelta'), 'Falta la proyección del Proto
 assert(app.includes('function lineasProtocoloDelta'), 'Falta el resumen permanente del Protocolo Δ');
 assert(app.includes('resonancias'), 'Faltan las resonancias por muestras repetidas');
 assert(app.includes('matricesDelta'), 'Falta la bonificación por matriz isotópica mixta');
+assert(html.includes('id="historialPozos"'), 'Falta el historial de pozos en Registro');
+assert(html.includes('id="bitacoraCientifica"'), 'Falta la bitácora científica en Registro');
+assert(app.includes('function pintarArchivoExpedicion'), 'Falta el renderizado del archivo de expediciones');
+assert(app.includes('historialPozos'), 'El cierre debe conservar el historial de pozos');
+assert(app.includes('registrarBitacora'), 'Falta registrar las decisiones científicas relevantes');

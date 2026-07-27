@@ -167,12 +167,31 @@
   </section>
 
   <section class="pagina oculta" data-pag="registro">
-    <h2>Registro de perforación</h2>
+    <header class="panel-cab registro-cab">
+      <div><p class="eyebrow">SECCIÓN 02 · ARCHIVO DE EXPEDICIÓN</p><h1>Registro de perforación</h1></div>
+      <span class="panel-estado"><i></i> <span id="registroEstado">EN LÍNEA</span></span>
+    </header>
+    <section class="registro-resumen" aria-label="Resumen de expedición">
+      <div><span>POZOS</span><strong id="registroPozos">0</strong><small>CERRADOS</small></div>
+      <div><span>PROFUNDIDAD</span><strong id="registroProfundidad">0 m</strong><small>RÉCORD</small></div>
+      <div><span>FIRMAS</span><strong id="registroFirmas">0 / 4</strong><small>IDENTIFICADAS</small></div>
+    </section>
     <section class="catalogo-panel" aria-label="Catálogo de firmas isotópicas">
       <div class="subseccion-cab"><h2>Catálogo isotópico <span>INVESTIGACIÓN</span></h2></div>
       <div id="catalogoIsotopos"></div>
     </section>
+    <section class="registro-panel" aria-label="Historial de pozos">
+      <div class="subseccion-cab"><h2>Historial de pozos <span id="historialPozosEstado">SIN CIERRES</span></h2></div>
+      <div id="historialPozos"></div>
+    </section>
+    <section class="registro-panel" aria-label="Bitácora científica">
+      <div class="subseccion-cab"><h2>Bitácora científica <span id="bitacoraEstado">SEÑALES RELEVANTES</span></h2></div>
+      <div id="bitacoraCientifica"></div>
+    </section>
+    <section class="registro-panel" aria-label="Archivo de profundidad">
+      <div class="subseccion-cab"><h2>Archivo de profundidad <span id="archivoEstado">LORE DESBLOQUEADO</span></h2></div>
     <div id="registroLista"></div>
+    </section>
   </section>
 
   <section class="pagina oculta pagina-sistema" data-pag="sistema">

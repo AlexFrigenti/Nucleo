@@ -506,3 +506,11 @@ section{margin-bottom:26px}
 .aplicacion-pausada .estado-sistema i,
 .aplicacion-pausada .panel-estado i,
 .aplicacion-pausada #puntoGrafica{animation-play-state:paused}
+
+/* Fuera de Sondeo el radar no debe consumir composición ni batería: la página
+   queda oculta, pero pausamos explícitamente sus animaciones persistentes. */
+.vista-no-sondeo #radarBarrido,
+.vista-no-sondeo #halo,
+.vista-no-sondeo .centro-radar,
+.vista-no-sondeo #puntoGrafica,
+.vista-no-sondeo #senal{animation-play-state:paused}

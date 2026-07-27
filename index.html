@@ -965,7 +965,7 @@ function pintarGrafica(){
 }
 
 /* ============ BUCLE PRINCIPAL ============ */
-let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, senalDurActual = null;
+let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, senalDurActual = null, rafId = null;
 
 function bucle(ahora){
   const dt = Math.min((ahora - ultimo)/1000, 1);
@@ -991,7 +991,7 @@ function bucle(ahora){
   if(acumGuardado >= 5){ acumGuardado = 0; guardar(); }
 
   dibujar(jps);
-  requestAnimationFrame(bucle);
+  rafId = requestAnimationFrame(bucle);
 }
 
 function dibujar(jps){
@@ -1100,7 +1100,13 @@ async function cargar(){
   }
   crearFichas(); pintarMejoras();
   comprobarRegistro(); actualizarBadge(); comprobarLogros();
-  requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
+  rafId = requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
+}
+// reinicia el motor del juego (por si iOS lo detuvo en segundo plano)
+function reiniciarMotor(){
+  if(rafId) cancelAnimationFrame(rafId);
+  ultimo = performance.now();
+  rafId = requestAnimationFrame(bucle);
 }
 
 // iOS congela la pestaña sin avisar: guardamos al salir y acumulamos al volver
@@ -1110,9 +1116,9 @@ document.addEventListener('visibilitychange', ()=>{
   }else{
     // volvió de segundo plano: acumula lo producido mientras estuvo fuera
     aplicarAusencia(s.t);
-    ultimo = performance.now();   // evita un salto de dt en el bucle al reanudar
     comprobarRegistro(); comprobarLogros();
     guardar();
+    reiniciarMotor();   // por si iOS detuvo el bucle en segundo plano
   }
 });
 window.addEventListener('pagehide', guardar);
@@ -1147,7 +1153,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 20;
+const VERSION = 21;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

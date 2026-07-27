@@ -861,7 +861,17 @@ function actualizarInstrumentos(profM, jps){
   $('instPeriodo').textContent = periodo;
   // Escala logarítmica: permite que los primeros metros y el núcleo sean legibles en el mismo perfil.
   const posicion = Math.min(98, Math.max(2, Math.log10(profM + 1) / Math.log10(6371001) * 96));
-  $('marcadorProfundidad').style.top = posicion.toFixed(2) + '%';
+  const marcador = $('marcadorProfundidad');
+  if(!marcador.dataset.colocado){
+    // primera vez: colócalo YA en su sitio, sin animar la caída desde arriba
+    marcador.style.transition = 'none';
+    marcador.style.top = posicion.toFixed(2) + '%';
+    void marcador.offsetHeight;          // fuerza el reflow
+    marcador.style.transition = '';      // restaura la transición del CSS para lo sucesivo
+    marcador.dataset.colocado = '1';
+  } else {
+    marcador.style.top = posicion.toFixed(2) + '%';
+  }
   $('telemetriaEstado').textContent = jps > 0 ? 'ACTIVO · 60 s' : 'EN ESPERA · 60 s';
 }
 
@@ -1132,7 +1142,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 33;
+const VERSION = 34;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

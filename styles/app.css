@@ -379,6 +379,13 @@ section{margin-bottom:26px}
 #marcadorProfundidad i{position:absolute;left:-1px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--frio)}
 #marcadorProfundidad b{position:absolute;left:9px;top:-9px;padding:2px 4px;background:#101722;color:var(--frio);font:8px var(--mono);letter-spacing:.04em;white-space:nowrap}
 .perfil-pies{display:flex;justify-content:space-between;margin-top:4px;color:var(--tenue);font:7px var(--mono)}
+.perfil-firma{margin-top:7px;font:8px var(--mono);letter-spacing:.08em;color:var(--calor);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.objetivo-estrato{margin:0 0 14px;padding:11px;border:1px solid rgba(79,195,217,.34);background:linear-gradient(120deg,rgba(12,30,38,.9),rgba(17,23,31,.72));box-shadow:inset 3px 0 0 var(--frio);transition:border-color .3s,box-shadow .3s}
+.objetivo-cab{display:flex;justify-content:space-between;gap:12px;font:8px var(--mono);letter-spacing:.1em;color:var(--tenue)}
+.objetivo-cab span:last-child{color:var(--frio);white-space:nowrap}.objetivo-estrato strong{display:block;margin-top:7px;font:600 12px var(--mono);letter-spacing:.055em;color:var(--texto)}
+.objetivo-estrato p{margin:5px 0 9px;font-size:11px;line-height:1.35;color:var(--tenue)}.objetivo-barra{height:4px;background:rgba(124,139,158,.18);overflow:hidden}.objetivo-barra i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--frio),var(--calor));box-shadow:0 0 8px rgba(79,195,217,.5);transition:width .35s ease}.objetivo-estrato small{display:block;margin-top:8px;font:8px var(--mono);letter-spacing:.06em;color:var(--calor)}
+.objetivo-estrato.objetivo-completado{border-color:rgba(240,162,46,.72);box-shadow:inset 3px 0 0 var(--calor),0 0 20px rgba(240,162,46,.16);animation:objetivo-completado .7s ease-out}.objetivo-completado .objetivo-cab span:last-child{color:var(--calor)}
+@keyframes objetivo-completado{40%{transform:translateY(-2px);filter:brightness(1.3)}100%{transform:translateY(0);filter:brightness(1)}}
 #telemetria{margin:0 0 12px}.tel-cab{margin-bottom:6px}.tel-cab span:last-child{color:var(--tono)}
 #grafica{height:62px;background:rgba(2,6,10,.35);border-color:var(--borde-instrumento)}
 #grafica #areaGrafica{fill:url(#rellenoGrafica);stroke:none}.grafica #linea,#grafica #linea{filter:drop-shadow(0 0 2px var(--tono))}#puntoGrafica{fill:var(--tono);stroke:var(--fondo);stroke-width:1;transition:fill .8s linear}

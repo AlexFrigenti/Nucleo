@@ -97,7 +97,8 @@ function nuevaPartida(){
            // Investigación isotópica. `muestras` espera al próximo Protocolo Δ;
            // `investigacion` ya está convertida en una mejora permanente.
            muestras:{}, investigacion:{}, descubiertos:[], anomaliasCiclo:[],
-           anomalia:null, isotopoActivo:null, tutorialIsotopoVisto:false };
+           anomalia:null, isotopoActivo:null, tutorialIsotopoVisto:false,
+           objetivosEstrato:[] };
 }
 
 /* ============ CÁLCULOS ============ */
@@ -116,7 +117,7 @@ function bonusGlobal(){
   const base = tieneMejora('enriq') ? 1.07 : 1.05;
   const bonusHitos = 1 + 0.02 * (s.logros ? s.logros.length : 0);
   // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
-  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')), 1e300);
+  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')) * bonusObjetivoEstrato('global'), 1e300);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal() * (s.isotopoActivo === 'he3' ? 1.25 : 1);
@@ -125,7 +126,7 @@ function porSegundo(){
   return MODULOS.reduce((t,m)=>t+produccionDe(m), 0);
 }
 function porToque(){
-  return 1 * multiplicadorDe('toque') * bonusGlobal() * (1 + .02 * investigacionDe('fe57')) * (s.isotopoActivo === 'fe57' ? 1.25 : 1);
+  return 1 * multiplicadorDe('toque') * bonusGlobal() * (1 + .02 * investigacionDe('fe57')) * bonusObjetivoEstrato('toque') * (s.isotopoActivo === 'fe57' ? 1.25 : 1);
 }
 function costeDe(m){
   const descuentoSi = Math.min(.15, .01 * investigacionDe('si29')) + (s.isotopoActivo === 'si29' ? .20 : 0);
@@ -146,6 +147,23 @@ function maxAsequible(m){
 }
 function isotoposAlRecalibrar(){
   return Math.floor(Math.sqrt(s.totalCiclo / UMBRAL)) + (s.isotopoActivo === 'ni62' ? 1 : 0);
+}
+
+// Cada estrato propone una meta visible. Las firmas conservan su elección
+// isotópica; las dos lecturas de control dan una ventaja hasta cerrar el pozo.
+const OBJETIVOS_ESTRATO = [
+  {id:'fe57', min:1000, estrato:'CORTEZA CONTINENTAL', titulo:'LOCALIZAR FIRMA FE-57', detalle:'Alcanza 1.000 m para analizar la primera anomalía isotópica.', recompensa:'Decisión isotópica · Fe-57', firma:'FE-57'},
+  {id:'si29', min:35000, estrato:'MANTO SUPERIOR', titulo:'ATRAVESAR LA DISCONTINUIDAD', detalle:'Alcanza 35 km y localiza una veta de silicio anómalo.', recompensa:'Decisión isotópica · Si-29', firma:'SI-29'},
+  {id:'transicion', min:410000, estrato:'ZONA DE TRANSICIÓN', titulo:'CARTOGRAFIAR LA TRANSICIÓN', detalle:'Alcanza 410 km para estabilizar la lectura de fase mineral.', recompensa:'+15 % extracción manual · este pozo', firma:'LECTURA DE FASE'},
+  {id:'he3', min:660000, estrato:'MANTO INFERIOR', titulo:'AISLAR BOLSILLO DE HE-3', detalle:'Alcanza 660 km y localiza helio atrapado en el flujo profundo.', recompensa:'Decisión isotópica · He-3', firma:'HE-3'},
+  {id:'ni62', min:2890000, estrato:'NÚCLEO EXTERNO', titulo:'CRUZAR GUTENBERG', detalle:'Alcanza 2.890 km para recuperar una firma de níquel estable.', recompensa:'Decisión isotópica · Ni-62', firma:'NI-62'},
+  {id:'nucleo', min:5150000, estrato:'NÚCLEO INTERNO', titulo:'ALINEAR EL NÚCLEO', detalle:'Alcanza 5.150 km y fija la referencia geométrica del pozo.', recompensa:'+10 % producción global · este pozo', firma:'REFERENCIA CENTRAL'}
+];
+function tieneObjetivoEstrato(id){ return (s.objetivosEstrato || []).includes(id); }
+function bonusObjetivoEstrato(tipo){
+  if(tipo === 'toque' && tieneObjetivoEstrato('transicion')) return 1.15;
+  if(tipo === 'global' && tieneObjetivoEstrato('nucleo')) return 1.10;
+  return 1;
 }
 
 // Cuatro firmas iniciales. Cada una aparece en un estrato concreto y ofrece
@@ -267,6 +285,49 @@ const ESTRATOS = [
   {min:0,       n:'CORTEZA CONTINENTAL'}
 ];
 function estratoDe(prof){ for(const e of ESTRATOS){ if(prof >= e.min) return e.n; } return 'CORTEZA CONTINENTAL'; }
+
+function siguienteObjetivoEstrato(){ return OBJETIVOS_ESTRATO.find(o=>!tieneObjetivoEstrato(o.id)) || null; }
+function comprobarObjetivosEstrato(silencioso=false){
+  if(!Array.isArray(s.objetivosEstrato)) s.objetivosEstrato = [];
+  const prof = profundidad();
+  const nuevos = OBJETIVOS_ESTRATO.filter(o=>prof >= o.min && !tieneObjetivoEstrato(o.id));
+  if(!nuevos.length) return;
+  nuevos.forEach(o=>s.objetivosEstrato.push(o.id));
+  guardar();
+  if(!silencioso) mostrarObjetivoEstrato(nuevos[nuevos.length-1]);
+}
+function mostrarObjetivoEstrato(objetivo){
+  const aviso = $('objetivoEstrato');
+  if(!aviso) return;
+  aviso.classList.remove('objetivo-completado');
+  void aviso.offsetWidth;
+  aviso.classList.add('objetivo-completado');
+  $('objetivoEstado').textContent = 'OBJETIVO COMPLETADO · ' + objetivo.estrato;
+  clearTimeout(aviso._objetivoTimer);
+  aviso._objetivoTimer = setTimeout(()=>aviso.classList.remove('objetivo-completado'), 1600);
+}
+function actualizarObjetivoEstrato(prof){
+  const siguiente = siguienteObjetivoEstrato();
+  const anterior = [...OBJETIVOS_ESTRATO].reverse().find(o=>tieneObjetivoEstrato(o.id));
+  if(!siguiente){
+    $('objetivoEstado').textContent = 'EXPEDICIÓN COMPLETADA';
+    $('objetivoTitulo').textContent = 'TODOS LOS ESTRATOS CARTOGRAFIADOS';
+    $('objetivoDetalle').textContent = 'La referencia central permanece estable hasta cerrar el pozo.';
+    $('objetivoProgreso').textContent = '6 / 6'; $('objetivoBarra').style.width = '100%';
+    $('objetivoRecompensa').textContent = 'EFECTOS ACTIVOS · ' + (tieneObjetivoEstrato('transicion') ? '+15 % manual' : '') + (tieneObjetivoEstrato('nucleo') ? ' · +10 % producción' : '');
+    $('perfilFirma').textContent = 'PERFIL COMPLETO · REFERENCIA CENTRAL FIJADA';
+    return;
+  }
+  const desde = anterior ? anterior.min : 0;
+  const avance = Math.max(0, Math.min(1, (prof - desde) / (siguiente.min - desde)));
+  $('objetivoEstado').textContent = 'OBJETIVO · ' + siguiente.estrato;
+  $('objetivoTitulo').textContent = siguiente.titulo;
+  $('objetivoDetalle').textContent = siguiente.detalle;
+  $('objetivoProgreso').textContent = fmtMetros(prof) + ' / ' + fmtMetros(siguiente.min) + ' m';
+  $('objetivoBarra').style.width = (avance * 100).toFixed(1) + '%';
+  $('objetivoRecompensa').textContent = 'RECOMPENSA · ' + siguiente.recompensa;
+  $('perfilFirma').textContent = 'PRÓXIMA FIRMA · ' + siguiente.firma + ' A ' + fmtMetros(siguiente.min) + ' m';
+}
 
 /* ============ CONSTRUCCIÓN DE LA INTERFAZ ============ */
 // Las lecturas de interfaz son muy frecuentes. Cachearlas evita volver a recorrer
@@ -734,6 +795,7 @@ function bucle(ahora){
     comprobarRegistro();
     comprobarLogros();
     comprobarAnomalia();
+    comprobarObjetivosEstrato();
     const dur = Math.max(2.2, 6 - Math.log10(profundidad()+10)*0.5).toFixed(1);
     if(dur !== senalDurActual){ senalDurActual = dur; document.documentElement.style.setProperty('--senal-dur', dur+'s'); }
   }
@@ -766,6 +828,7 @@ function dibujar(jps){
   }
   $('radarProfundidad').textContent = fmtMetros(profM) + ' m';
   actualizarInstrumentos(profM, jps);
+  actualizarObjetivoEstrato(profM);
   $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
 
   // anillo: avance hacia el siguiente isótopo
@@ -865,17 +928,20 @@ async function cargar(){
       if(!s.investigacion || typeof s.investigacion !== 'object') s.investigacion = {};
       if(!Array.isArray(s.descubiertos)) s.descubiertos = [];
       if(!Array.isArray(s.anomaliasCiclo)) s.anomaliasCiclo = [];
+      if(!Array.isArray(s.objetivosEstrato)) s.objetivosEstrato = [];
       if(typeof s.tutorialIsotopoVisto !== 'boolean') s.tutorialIsotopoVisto = false;
       if(!s.anomalia || !muestraPorId(s.anomalia.id)) s.anomalia = null;
       if(!muestraPorId(s.isotopoActivo)) s.isotopoActivo = null;
       if(typeof d.totalVida !== 'number') s.totalVida = s.totalCiclo;
       if(typeof d.toquesVida !== 'number') s.toquesVida = s.toques;
+      // Las metas ya logradas se reconocen sin seis avisos al actualizar.
+      comprobarObjetivosEstrato(true);
 
       aplicarAusencia(d.t);
     }catch(e){ /* partida corrupta: empezamos de cero */ }
   }
   crearFichas(); pintarMejoras();
-  comprobarRegistro(); actualizarBadge(); comprobarLogros();
+  comprobarRegistro(); actualizarBadge(); comprobarLogros(); comprobarObjetivosEstrato(true);
   rafId = requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
 }
 // reinicia el motor del juego (por si iOS lo detuvo en segundo plano)
@@ -948,7 +1014,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 28;
+const VERSION = 29;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

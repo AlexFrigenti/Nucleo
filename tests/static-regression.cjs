@@ -45,8 +45,8 @@ assert(!html.includes('data-pag="equipo"'), 'La navegación no debe mantener una
 assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
 assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
 assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
-assert(app.includes('const VERSION = 28'), 'La versión de la aplicación no está actualizada');
-assert(sw.includes("const CACHE = 'nucleo-v10'"), 'La caché offline no se ha renovado');
+assert(app.includes('const VERSION = 29'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v11'"), 'La caché offline no se ha renovado');
 assert(app.includes('activarMicrointeracciones'), 'Falta el feedback de interacción');
 assert(app.includes('activarTransicionEstrato'), 'Falta la transición de estratos');
 assert(app.includes('dispararMuestraDetectada'), 'Falta el feedback de muestra isotópica');
@@ -64,3 +64,8 @@ assert(app.includes('function comprobarAnomalia'), 'Falta la detección de anoma
 assert(app.includes('function resolverMuestra'), 'Falta la decisión estabilizar/recuperar');
 assert(app.includes('function pintarCatalogoIsotopos'), 'Falta el catálogo de investigación');
 assert(app.includes('investigacion'), 'Las muestras recuperadas deben convertirse en investigación');
+assert(html.includes('id="objetivoEstrato"'), 'Falta el objetivo jugable del estrato');
+assert(html.includes('id="perfilFirma"'), 'Falta la pista de la próxima firma');
+assert(app.includes('const OBJETIVOS_ESTRATO'), 'Falta la definición de objetivos por estrato');
+assert(app.includes('function actualizarObjetivoEstrato'), 'Falta el progreso del objetivo de estrato');
+assert(app.includes('bonusObjetivoEstrato'), 'Faltan las recompensas operativas por estrato');

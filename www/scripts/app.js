@@ -203,7 +203,13 @@ const ESTRATOS = [
 function estratoDe(prof){ for(const e of ESTRATOS){ if(prof >= e.min) return e.n; } return 'CORTEZA CONTINENTAL'; }
 
 /* ============ CONSTRUCCIÓN DE LA INTERFAZ ============ */
-const $ = id => document.getElementById(id);
+// Las lecturas de interfaz son muy frecuentes. Cachearlas evita volver a recorrer
+// el DOM en cada refresco visual, especialmente en Safari/iPhone.
+const nodos = new Map();
+const $ = id => {
+  if(!nodos.has(id)) nodos.set(id, document.getElementById(id));
+  return nodos.get(id);
+};
 const ref = {};
 
 /* dibujos animados de cada módulo (SVG) */
@@ -400,11 +406,11 @@ function renderSistema(){
   renderEstadoSistema();
   renderEventosRecientes();
 }
-function actualizarResumenEquipo(){
+function actualizarResumenEquipo(jps = porSegundo()){
   const total = totalModulos();
   const disponibles = mejorasVisibles().length;
   $('totalMod').textContent = total;
-  $('capacidadEquipo').textContent = fmt(porSegundo()) + ' J/s';
+  $('capacidadEquipo').textContent = fmt(jps) + ' J/s';
   $('mejorasResumen').textContent = s.mejoras.length;
   $('mejorasDisponibles').textContent = disponibles ? disponibles + ' DISPONIBLE' + (disponibles > 1 ? 'S':'') : 'EN ESPERA';
 }
@@ -608,10 +614,16 @@ function pintarGrafica(){
   $('puntoGrafica').setAttribute('cy', (43 - (ultimoPunto/max)*40).toFixed(1));
 }
 
-/* ============ BUCLE PRINCIPAL ============ */
-let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, senalDurActual = null, rafId = null;
+/* ============ BUCLE PRINCIPAL ============
+   La simulación sigue usando requestAnimationFrame para que los intervalos sean
+   precisos. La interfaz se actualiza a 10 fps como máximo: los números no
+   necesitan 60 escrituras DOM por segundo y la batería del móvil lo agradece. */
+let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, acumRender = 0;
+let senalDurActual = null, rafId = null, motorPausado = false;
+const INTERVALO_RENDER = .1;
 
 function bucle(ahora){
+  if(motorPausado || document.hidden) return;
   const dt = Math.min((ahora - ultimo)/1000, 1);
   ultimo = ahora;
 
@@ -623,7 +635,8 @@ function bucle(ahora){
 
   acumTic += dt;
   if(acumTic >= 1){
-    acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
+    acumTic = 0; historial.push(jps); historial.shift();
+    if(pestanaActiva === 'sondeo') pintarGrafica();
     if(pestanaActiva === 'sistema') renderSistema();
     comprobarRegistro();
     comprobarLogros();
@@ -634,11 +647,21 @@ function bucle(ahora){
   acumGuardado += dt;
   if(acumGuardado >= 5){ acumGuardado = 0; guardar(); }
 
-  dibujar(jps);
+  acumRender += dt;
+  if(acumRender >= INTERVALO_RENDER){
+    acumRender = 0;
+    dibujar(jps);
+  }
   rafId = requestAnimationFrame(bucle);
 }
 
 function dibujar(jps){
+  if(pestanaActiva === 'equipo'){
+    dibujarEquipo(jps);
+    return;
+  }
+  if(pestanaActiva !== 'sondeo') return;
+
   $('julios').textContent = fmt(s.j);
   $('tasa').textContent = fmt(jps)+' J/s';
   tonoActual(jps);
@@ -667,6 +690,19 @@ function dibujar(jps){
       ? 'siguiente isótopo en ' + (jps>0 ? fmtTiempo(falta) : '—')
       : 'primer isótopo al ' + Math.floor(p*100) + '%';
 
+  const gana = isotoposAlRecalibrar();
+  actualizarMuestra(gana, profM);
+  const boton = $('recal');
+  boton.style.display = (gana >= 1) ? 'block' : 'none';
+  if(gana >= 1) boton.innerHTML =
+    `<span class="protocolo-codigo">PROTOCOLO Δ-${String((s.recalibraciones||0)+1).padStart(2,'0')}</span><strong>RECALIBRAR INSTRUMENTACIÓN</strong><small>Recuperar ${gana} isótopo${gana>1?'s':''} · reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
+
+  const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
+  $('isotopos').textContent = s.isotopos
+    ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos';
+}
+
+function dibujarEquipo(jps){
   let totalMod = 0;
   MODULOS.forEach(m=>{
     const r = ref[m.id], n = s.mod[m.id];
@@ -690,23 +726,11 @@ function dibujar(jps){
     r.glifo.style.color = n>0 ? colorNivel(n) : '';
     r.caja.disabled = !puedo;
   });
-  $('totalMod').textContent = totalMod ? totalMod+' instalados' : '';
-
-  const gana = isotoposAlRecalibrar();
-  actualizarMuestra(gana, profM);
-  const boton = $('recal');
-  boton.style.display = (gana >= 1) ? 'block' : 'none';
-  if(gana >= 1) boton.innerHTML =
-    `<span class="protocolo-codigo">PROTOCOLO Δ-${String((s.recalibraciones||0)+1).padStart(2,'0')}</span><strong>RECALIBRAR INSTRUMENTACIÓN</strong><small>Recuperar ${gana} isótopo${gana>1?'s':''} · reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
-
-  const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
-  $('isotopos').textContent = s.isotopos
-    ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos';
-
-  // las mejoras solo cambian de estado, no hace falta repintarlas cada fotograma
-  actualizarResumenEquipo();
+  $('totalMod').textContent = totalMod;
+  actualizarResumenEquipo(jps);
   const vis = mejorasVisibles();
-  document.querySelectorAll('#mejoras .ficha').forEach((b,i)=>{
+  const fichasMejoras = $('mejoras').querySelectorAll('.ficha');
+  fichasMejoras.forEach((b,i)=>{
     const u = vis[i];
     if(!u) return;
     const puedo = s.j >= u.coste;
@@ -757,14 +781,23 @@ async function cargar(){
 // reinicia el motor del juego (por si iOS lo detuvo en segundo plano)
 function reiniciarMotor(){
   if(rafId) cancelAnimationFrame(rafId);
+  motorPausado = false;
+  acumRender = INTERVALO_RENDER;
   ultimo = performance.now();
   rafId = requestAnimationFrame(bucle);
+}
+
+function pausarMotor(){
+  motorPausado = true;
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = null;
 }
 
 // iOS congela la pestaña sin avisar: guardamos al salir y acumulamos al volver
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
     guardar();
+    pausarMotor();
   }else{
     // volvió de segundo plano: acumula lo producido mientras estuvo fuera
     aplicarAusencia(s.t);
@@ -781,12 +814,14 @@ const _paginas = document.querySelectorAll('.pagina');
 const _navTabs = document.querySelectorAll('#navbar .nav-tab');
 function mostrarPagina(id){
   pestanaActiva = id;
+  document.documentElement.classList.toggle('vista-no-sondeo', id !== 'sondeo');
   _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
   _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
   if(id === 'equipo')   pintarMejoras();
   if(id === 'sistema') renderSistema();
   if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
   window.scrollTo(0, 0);
+  acumRender = INTERVALO_RENDER;
 }
 _navTabs.forEach(t => t.onclick = ()=> mostrarPagina(t.dataset.pag));
 
@@ -805,7 +840,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 25;
+const VERSION = 26;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

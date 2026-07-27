@@ -859,8 +859,14 @@ function actualizarInstrumentos(profM, jps){
   $('instPresion').textContent = presion < 10 ? presion.toFixed(1).replace('.', ',') + ' MPa' : Math.round(presion).toString() + ' MPa';
   $('instDensidad').textContent = densidad.toFixed(2).replace('.', ',') + ' g/cm³';
   $('instPeriodo').textContent = periodo;
-  // Escala logarítmica: permite que los primeros metros y el núcleo sean legibles en el mismo perfil.
-  const posicion = Math.min(98, Math.max(2, Math.log10(profM + 1) / Math.log10(6371001) * 96));
+  // Posición realista y alineada con las franjas: cada estrato ocupa 1/6 del ancho
+  // y el marcador se interpola dentro del rango REAL de profundidad de su estrato.
+  // Así, 4 m quedan al borde de la corteza y cada frontera cae en su franja.
+  const LIM = [0, 35000, 410000, 660000, 2890000, 5150000, 6371000];
+  let posicion = 99.5;
+  for(let i = 0; i < 6; i++){
+    if(profM < LIM[i+1]){ posicion = Math.max(0.5, Math.min(99.5, (i + (profM - LIM[i]) / (LIM[i+1] - LIM[i])) / 6 * 100)); break; }
+  }
   const marcador = $('marcadorProfundidad');
   if(!marcador.dataset.colocado){
     // primera vez: colócalo YA en su sitio, sin animar el desplazamiento inicial
@@ -1142,7 +1148,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 35;
+const VERSION = 36;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

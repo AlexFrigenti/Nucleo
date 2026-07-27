@@ -30,3 +30,8 @@ for (const asset of ['styles/app.css', 'scripts/app.js']) {
   assert(sw.includes('./' + asset), asset + ' no está en la caché offline');
 }
 console.log('✓ Contratos de fases 0 y 1 verificados');
+
+assert(html.includes('id="muestraIsotopo"'), 'Falta el panel de muestra isotópica');
+assert(html.includes('id="muestraEstado"'), 'Falta el estado de la muestra');
+assert(app.includes('function actualizarMuestra'), 'Falta el renderizado de muestra isotópica');
+assert(app.includes('PROTOCOLO Δ-'), 'Falta el protocolo visual de recalibración');

@@ -143,6 +143,31 @@ function isotoposAlRecalibrar(){
   return Math.floor(Math.sqrt(s.totalCiclo / UMBRAL));
 }
 
+// La muestra es una lectura visual: no se guarda ni altera la economía del pozo.
+const MUESTRAS = [
+  {codigo:'FE-57', simbolo:'Fe', nombre:'HIERRO', estabilidad:81, pureza:94},
+  {codigo:'NI-62', simbolo:'Ni', nombre:'NÍQUEL', estabilidad:76, pureza:91},
+  {codigo:'IR-193', simbolo:'Ir', nombre:'IRIDIO', estabilidad:88, pureza:97},
+  {codigo:'U-235', simbolo:'U', nombre:'URANIO', estabilidad:69, pureza:86},
+  {codigo:'OS-192', simbolo:'Os', nombre:'OSMIO', estabilidad:84, pureza:93}
+];
+function actualizarMuestra(gana, profM){
+  const muestra = MUESTRAS[s.isotopos % MUESTRAS.length];
+  const lista = $('muestraIsotopo');
+  const listaRecuperable = gana >= 1;
+  lista.classList.toggle('recuperable', listaRecuperable);
+  $('muestraEstado').textContent = listaRecuperable ? 'ISÓTOPO DETECTADO' : 'ANÁLISIS EN CURSO';
+  $('muestraCodigo').textContent = muestra.codigo;
+  $('muestraSimbolo').textContent = muestra.simbolo;
+  $('muestraNombre').textContent = muestra.nombre;
+  $('muestraDetalle').textContent = listaRecuperable
+    ? 'Muestra lista para recuperación'
+    : 'Firma a ' + fmtMetros(profM) + ' m';
+  $('muestraEstabilidad').textContent = listaRecuperable ? muestra.estabilidad + '%' : '—';
+  $('muestraPureza').textContent = listaRecuperable ? muestra.pureza + '%' : '—';
+  $('muestraCantidad').textContent = listaRecuperable ? gana : '—';
+}
+
 /* ============ FORMATO DE NÚMEROS ============ */
 const SUF = ['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
 function fmt(n){
@@ -291,7 +316,7 @@ $('recal').onclick = ()=>{
 // entrada de cierre (no va por profundidad): se lee antes de reiniciar
 function mostrarCierre(gana){
   $('cierreCab').textContent = 'CIERRE DE POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0');
-  $('cierreTxt').textContent = 'El pozo no ha colapsado. Se ha cerrado.\nRecomiendo emplazamiento nuevo a 400 m del anterior.';
+  $('cierreTxt').textContent = 'Muestra estabilizada: ' + gana + ' isótopo' + (gana>1?'s':'') + '.\n\nEl pozo no ha colapsado. Se ha cerrado.\nRecomiendo emplazamiento nuevo a 400 m del anterior.';
   $('cierre').classList.add('on');
   $('cierreOk').onclick = ()=>{ $('cierre').classList.remove('on'); hacerRecalibrado(gana); };
 }
@@ -610,10 +635,11 @@ function dibujar(jps){
   $('totalMod').textContent = totalMod ? totalMod+' instalados' : '';
 
   const gana = isotoposAlRecalibrar();
+  actualizarMuestra(gana, profM);
   const boton = $('recal');
   boton.style.display = (gana >= 1) ? 'block' : 'none';
   if(gana >= 1) boton.innerHTML =
-    `Recalibrar por ${gana} isótopo${gana>1?'s':''}<small>reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
+    `<span class="protocolo-codigo">PROTOCOLO Δ-${String((s.recalibraciones||0)+1).padStart(2,'0')}</span><strong>RECALIBRAR INSTRUMENTACIÓN</strong><small>Recuperar ${gana} isótopo${gana>1?'s':''} · reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
 
   const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
   $('isotopos').textContent = s.isotopos

@@ -117,6 +117,7 @@
           </div>
         </div>
         <div class="muestra-espectro" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div id="muestraAcciones" class="muestra-acciones"></div>
       </section>
 
       <button id="recal"></button>
@@ -152,6 +153,10 @@
 
   <section class="pagina oculta" data-pag="registro">
     <h2>Registro de perforación</h2>
+    <section class="catalogo-panel" aria-label="Catálogo de firmas isotópicas">
+      <div class="subseccion-cab"><h2>Catálogo isotópico <span>INVESTIGACIÓN</span></h2></div>
+      <div id="catalogoIsotopos"></div>
+    </section>
     <div id="registroLista"></div>
   </section>
 
@@ -226,6 +231,17 @@
     <div class="cierre-cab" id="cierreCab">CIERRE DE POZO</div>
     <div class="cierre-txt" id="cierreTxt"></div>
     <button id="cierreOk">Emplazar nuevo pozo</button>
+  </div>
+</div>
+
+<div id="tutorialIsotopo" class="tutorial-isotopo" role="dialog" aria-modal="true" aria-labelledby="tutorialTitulo">
+  <div class="tutorial-caja">
+    <div id="tutorialEtiqueta" class="tutorial-etiqueta">ANOMALÍA DETECTADA</div>
+    <div id="tutorialCodigo" class="tutorial-codigo">FE-57 · HIERRO</div>
+    <h2 id="tutorialTitulo">Una firma ha interrumpido el sondeo</h2>
+    <p id="tutorialTexto"></p>
+    <div id="tutorialAcciones" class="tutorial-acciones"></div>
+    <small>Las próximas anomalías se gestionan desde la consola.</small>
   </div>
 </div>
 

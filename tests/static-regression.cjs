@@ -42,8 +42,8 @@ assert(html.includes('id="capacidadEquipo"'), 'Falta el resumen operativo de Equ
 assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
 assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
 assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
-assert(app.includes('const VERSION = 26'), 'La versión de la aplicación no está actualizada');
-assert(sw.includes("const CACHE = 'nucleo-v8'"), 'La caché offline no se ha renovado');
+assert(app.includes('const VERSION = 27'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v9'"), 'La caché offline no se ha renovado');
 assert(app.includes('activarMicrointeracciones'), 'Falta el feedback de interacción');
 assert(app.includes('activarTransicionEstrato'), 'Falta la transición de estratos');
 assert(app.includes('dispararMuestraDetectada'), 'Falta el feedback de muestra isotópica');
@@ -55,3 +55,9 @@ assert(app.includes('const INTERVALO_RENDER = .1'), 'Falta el límite de refresc
 assert(app.includes('function pausarMotor()'), 'Falta la pausa explícita del motor');
 assert(app.includes("document.documentElement.classList.toggle('vista-no-sondeo'"), 'Falta la pausa visual fuera de Sondeo');
 assert(css.includes('.vista-no-sondeo #radarBarrido'), 'Falta la pausa de radar fuera de Sondeo');
+assert(html.includes('id="tutorialIsotopo"'), 'Falta el tutorial del primer isótopo');
+assert(html.includes('id="catalogoIsotopos"'), 'Falta el catálogo isotópico');
+assert(app.includes('function comprobarAnomalia'), 'Falta la detección de anomalías durante el sondeo');
+assert(app.includes('function resolverMuestra'), 'Falta la decisión estabilizar/recuperar');
+assert(app.includes('function pintarCatalogoIsotopos'), 'Falta el catálogo de investigación');
+assert(app.includes('investigacion'), 'Las muestras recuperadas deben convertirse en investigación');

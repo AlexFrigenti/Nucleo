@@ -1067,6 +1067,24 @@ function guardar(){
   s.t = Date.now();
   Guardado.escribir(CLAVE, JSON.stringify(s));
 }
+
+// Aplica la producción del tiempo que la app estuvo cerrada o en segundo plano.
+// "desde" = marca de tiempo en que se guardó al salir. Tope: 8 h (24 h con batería).
+function aplicarAusencia(desde){
+  const tope = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
+  const fuera = Math.min((Date.now() - (desde || Date.now()))/1000, tope);
+  if(fuera > 60){
+    const extra = porSegundo() * fuera;
+    if(extra > 0){
+      s.j += extra; s.totalCiclo += extra; s.totalVida += extra;
+      const aviso = $('offline');
+      aviso.innerHTML = `Mientras no estabas (${fmtTiempo(fuera)}) el reactor siguió trabajando: <b>+${fmt(extra)} J</b>`;
+      aviso.style.display = 'block';
+      aviso.onclick = ()=>aviso.style.display='none';
+    }
+  }
+}
+
 async function cargar(){
   const bruto = await Guardado.leer(CLAVE);
   if(bruto){
@@ -1077,18 +1095,7 @@ async function cargar(){
       if(typeof d.totalVida !== 'number') s.totalVida = s.totalCiclo;
       if(typeof d.toquesVida !== 'number') s.toquesVida = s.toques;
 
-      const tope = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
-      const fuera = Math.min((Date.now() - (d.t||Date.now()))/1000, tope);
-      if(fuera > 60){
-        const extra = porSegundo() * fuera;
-        if(extra > 0){
-          s.j += extra; s.totalCiclo += extra;
-          const aviso = $('offline');
-          aviso.innerHTML = `Mientras no estabas (${fmtTiempo(fuera)}) el reactor siguió trabajando: <b>+${fmt(extra)} J</b>`;
-          aviso.style.display = 'block';
-          aviso.onclick = ()=>aviso.style.display='none';
-        }
-      }
+      aplicarAusencia(d.t);
     }catch(e){ /* partida corrupta: empezamos de cero */ }
   }
   crearFichas(); pintarMejoras();
@@ -1096,8 +1103,18 @@ async function cargar(){
   requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
 }
 
-// iOS congela la pestaña sin avisar: guardamos al salir de la app
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) guardar(); });
+// iOS congela la pestaña sin avisar: guardamos al salir y acumulamos al volver
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    guardar();
+  }else{
+    // volvió de segundo plano: acumula lo producido mientras estuvo fuera
+    aplicarAusencia(s.t);
+    ultimo = performance.now();   // evita un salto de dt en el bucle al reanudar
+    comprobarRegistro(); comprobarLogros();
+    guardar();
+  }
+});
 window.addEventListener('pagehide', guardar);
 
 /* ============ NAVEGACIÓN ENTRE PESTAÑAS ============ */
@@ -1130,7 +1147,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 19;
+const VERSION = 20;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

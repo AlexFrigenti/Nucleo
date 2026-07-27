@@ -355,6 +355,58 @@ function renderStats(){
     `<div class="stat-fila"><span class="etq">${f[0]}</span><span class="val">${f[1]}</span></div>`
   ).join('');
 }
+function renderEstadoSistema(){
+  // Diagnóstico visual: deriva del estado real, sin afectar a la simulación.
+  const prof = profundidad();
+  const jps = porSegundo();
+  const instalados = totalModulos();
+  const desgaste = Math.min(34, Math.log10(prof + 1) * 2.55);
+  const cargaTermica = Math.min(46, Math.log10(jps + 1) * 7.4);
+  const integridad = Math.max(66, Math.round(100 - desgaste));
+  const refrigeracion = Math.max(54, Math.round(100 - cargaTermica));
+  const energia = instalados ? Math.min(100, Math.round(18 + Math.log10(jps + 1) * 16 + Math.min(35, instalados * 2))) : 0;
+  const estado = Math.min(integridad, refrigeracion);
+  const poner = (valor, barra, nota, porcentaje, texto, alerta=false) => {
+    $(valor).textContent = porcentaje + '%';
+    $(barra).style.width = porcentaje + '%';
+    $(nota).textContent = texto;
+    $(barra).parentElement.parentElement.classList.toggle('alerta', alerta);
+  };
+  poner('saludIntegridad','barraIntegridad','saludIntegridadNota',integridad, integridad > 82 ? 'REVESTIMIENTO ESTABLE' : 'COMPENSACIÓN ACTIVA', integridad < 76);
+  poner('saludRefrigeracion','barraRefrigeracion','saludRefrigeracionNota',refrigeracion, refrigeracion > 76 ? 'CARGA TÉRMICA CONTROLADA' : 'CARGA TÉRMICA ELEVADA', refrigeracion < 68);
+  poner('saludEnergia','barraEnergia','saludEnergiaNota',energia, instalados ? 'RED DE MÓDULOS ACTIVA' : 'MÓDULOS EN ESPERA');
+  $('estadoGeneral').textContent = estado > 82 ? 'NOMINAL' : estado > 68 ? 'SUPERVISAR' : 'ATENCIÓN';
+}
+function renderEventosRecientes(){
+  const eventos = [];
+  const prof = profundidad();
+  const visibles = mejorasVisibles();
+  if(s.recalibraciones) eventos.push(['CIERRE CONFIRMADO','Pozo ' + String(s.recalibraciones + 1).padStart(2,'0') + ' en operación · ' + s.isotopos + ' isótopos recuperados.','ok']);
+  eventos.push(['EXTRACCIÓN ACTIVA', prof ? 'Sonda a ' + fmtMetros(prof) + ' m · ' + estratoDe(prof) + '.':'Esperando la primera extracción manual.','activo']);
+  if(visibles.length) eventos.push(['MEJORA DISPONIBLE', visibles[0].nombre + ' · inversión de ' + fmt(visibles[0].coste) + ' J.','alerta']);
+  else eventos.push(['LABORATORIO', 'Sin mejoras desbloqueadas. Amplía la red de módulos.','info']);
+  const ultimoRegistro = s.registro.length && typeof REGISTRO !== 'undefined' ? REGISTRO.find(e=>e.id === s.registro[s.registro.length-1]) : null;
+  if(ultimoRegistro) eventos.push(['REGISTRO ACTUALIZADO', 'REG-' + ultimoRegistro.id + ' · lectura a ' + fmtMetros(ultimoRegistro.m) + ' m.','info']);
+  $('eventosRecientes').innerHTML = eventos.slice(0,4).map(e=>
+    '<article class="evento '+e[2]+'"><i></i><div><strong>'+e[0]+'</strong><span>'+e[1]+'</span></div></article>'
+  ).join('');
+  $('eventosEstado').textContent = eventos.length + ' SEÑALES';
+}
+function renderSistema(){
+  renderStats();
+  renderHitos();
+  renderEstadoSistema();
+  renderEventosRecientes();
+}
+function actualizarResumenEquipo(){
+  const total = totalModulos();
+  const disponibles = mejorasVisibles().length;
+  $('totalMod').textContent = total;
+  $('capacidadEquipo').textContent = fmt(porSegundo()) + ' J/s';
+  $('mejorasResumen').textContent = s.mejoras.length;
+  $('mejorasDisponibles').textContent = disponibles ? disponibles + ' DISPONIBLE' + (disponibles > 1 ? 'S':'') : 'EN ESPERA';
+}
+
 /* la pestaña de estadísticas llama a renderStats() al abrirse (ver navegación) */
 
 /* ============ REGISTRO DE PERFORACIÓN ============ */
@@ -570,7 +622,7 @@ function bucle(ahora){
   acumTic += dt;
   if(acumTic >= 1){
     acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
-    if(pestanaActiva === 'sistema') renderStats();
+    if(pestanaActiva === 'sistema') renderSistema();
     comprobarRegistro();
     comprobarLogros();
     const dur = Math.max(2.2, 6 - Math.log10(profundidad()+10)*0.5).toFixed(1);
@@ -646,6 +698,7 @@ function dibujar(jps){
     ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos';
 
   // las mejoras solo cambian de estado, no hace falta repintarlas cada fotograma
+  actualizarResumenEquipo();
   const vis = mejorasVisibles();
   document.querySelectorAll('#mejoras .ficha').forEach((b,i)=>{
     const u = vis[i];
@@ -725,7 +778,7 @@ function mostrarPagina(id){
   _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
   _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
   if(id === 'equipo')   pintarMejoras();
-  if(id === 'sistema'){ renderStats(); renderHitos(); }
+  if(id === 'sistema') renderSistema();
   if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
   window.scrollTo(0, 0);
 }
@@ -746,7 +799,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 22;
+const VERSION = 24;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

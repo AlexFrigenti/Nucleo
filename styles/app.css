@@ -330,3 +330,61 @@ section{margin-bottom:26px}
   body{max-width:760px;padding-left:24px;padding-right:24px}
   #navbar{max-width:760px}
 }
+
+
+/* ============================================================
+   FASE 2 · CONSOLA DE SONDEO PROFUNDO
+   SVG + CSS: no se cargan imágenes ni bibliotecas externas.
+   ============================================================ */
+.pagina-sondeo #cabecera{padding:14px 12px 12px;overflow:hidden;position:relative}
+.pagina-sondeo #cabecera::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.38;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;mask-image:linear-gradient(#000,transparent 72%)}
+.sondeo-cab,.sondeo-instrumentos,#perfilGeologico,#telemetria,#recal,#isotopos,#senal{position:relative;z-index:1}
+.sondeo-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid var(--borde-instrumento);padding:0 0 10px}
+#cabPozo{font-size:10px;color:var(--texto);letter-spacing:.12em;text-align:left!important}
+.sondeo-subtitulo{margin-top:4px;font:9px var(--mono);letter-spacing:.1em;color:var(--tenue)}
+.estado-sistema{display:flex;align-items:center;gap:6px;padding:5px 0 0;white-space:nowrap;color:var(--frio);font:9px var(--mono);letter-spacing:.08em}
+.estado-sistema i{width:6px;height:6px;border-radius:50%;background:var(--frio);box-shadow:0 0 9px var(--frio);animation:indicador 1.8s ease-in-out infinite}
+@keyframes indicador{50%{opacity:.35;box-shadow:none}}
+#senal{margin:8px 0 4px;height:20px}
+#senal .senal-lbl{background:#131923;color:var(--tenue)}
+.sondeo-instrumentos{display:grid;grid-template-columns:minmax(0,1fr) minmax(118px,.72fr);align-items:center;gap:6px 12px}
+#nucleo{padding:0;min-height:212px;isolation:isolate}
+#anillo{width:min(52vw,214px);height:min(52vw,214px);max-width:214px;max-height:214px;filter:drop-shadow(0 0 12px rgba(79,195,217,.12))}
+#anillo .pista{stroke:rgba(79,195,217,.25);stroke-width:2.5}
+#anillo .carga{stroke:url(#arcoRadar);stroke-width:4}
+#anillo .radar-radial{fill:none;stroke:rgba(79,195,217,.12);stroke-width:.7}
+#anillo .marcas-radar path{stroke:rgba(79,195,217,.45);stroke-width:1.4;stroke-linecap:round}
+#radarBarrido{fill:rgba(79,195,217,.10);transform-origin:100px 100px;animation:barrido 5s linear infinite}
+#anillo .centro-radar{fill:var(--tono);filter:drop-shadow(0 0 5px var(--tono))}
+@keyframes barrido{to{transform:rotate(360deg)}}
+#halo{top:31px;width:148px;height:148px;opacity:.13;z-index:-1}
+#lectura{height:min(52vw,214px);max-height:214px;gap:2px}
+.lectura-etiqueta{font:8px var(--mono);letter-spacing:.12em;color:var(--tenue);margin-bottom:2px}
+#julios{font-size:clamp(26px,8vw,34px);line-height:1}
+#prof{order:3;margin-top:3px;color:var(--texto);font-size:12px}
+#tasa{order:2;font-size:13px}
+#restante{order:4;max-width:145px;text-align:center;line-height:1.25;margin-top:4px;font-size:8px}
+.radar-accion{position:absolute;bottom:1px;font:8px var(--mono);letter-spacing:.13em;color:var(--tenue)}
+#instrumentos{display:grid;gap:6px}
+.instrumento{min-height:44px;padding:6px 7px;border-left:2px solid var(--borde-instrumento);background:rgba(5,9,13,.28);display:grid;grid-template-columns:1fr auto;align-content:center;gap:1px 4px}
+.instrumento span,.instrumento small{font:8px var(--mono);letter-spacing:.07em;color:var(--tenue)}
+.instrumento strong{font:600 12px var(--mono);color:var(--texto);font-variant-numeric:tabular-nums;white-space:nowrap}
+.instrumento small{grid-column:1/-1;font-size:7px;opacity:.72}.instrumento.anomalía{border-left-color:var(--calor)}.instrumento.anomalía strong{color:var(--calor)}
+#perfilGeologico{margin:8px 0 12px;padding:8px;border:1px solid var(--borde-instrumento);background:rgba(4,8,12,.32)}
+.perfil-cab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font:9px var(--mono);letter-spacing:.12em;color:var(--tenue)}
+.perfil-cab strong{font-size:9px;color:var(--tono);text-align:right;letter-spacing:.06em}
+.columna-estratos{height:62px;display:flex;position:relative;overflow:hidden;background:#080c11}
+.capa-geologica{position:relative;flex:1;min-width:0;display:flex;align-items:flex-end;padding:0 2px 3px;border-right:1px solid rgba(255,255,255,.1);overflow:hidden}
+.capa-geologica:last-of-type{border:0}.capa-geologica span{font:7px var(--mono);letter-spacing:.04em;writing-mode:vertical-rl;transform:rotate(180deg);color:rgba(230,237,245,.72);white-space:nowrap}
+.corteza{background:linear-gradient(135deg,#426875,#15333e)}.manto-superior{background:linear-gradient(135deg,#5c5445,#27261e)}.transicion{background:linear-gradient(135deg,#93683a,#43351f)}.manto-inferior{background:linear-gradient(135deg,#673e32,#2e2021)}.nucleo-externo{background:linear-gradient(135deg,#a5562c,#47251f)}.nucleo-interno{background:linear-gradient(135deg,#d48d43,#5b3420)}
+#marcadorProfundidad{position:absolute;left:0;right:0;top:1%;height:0;border-top:1px solid var(--frio);filter:drop-shadow(0 0 3px var(--frio));transition:top .35s ease;pointer-events:none}
+#marcadorProfundidad i{position:absolute;left:-1px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--frio)}
+#marcadorProfundidad b{position:absolute;left:9px;top:-9px;padding:2px 4px;background:#101722;color:var(--frio);font:8px var(--mono);letter-spacing:.04em;white-space:nowrap}
+.perfil-pies{display:flex;justify-content:space-between;margin-top:4px;color:var(--tenue);font:7px var(--mono)}
+#telemetria{margin:0 0 12px}.tel-cab{margin-bottom:6px}.tel-cab span:last-child{color:var(--tono)}
+#grafica{height:62px;background:rgba(2,6,10,.35);border-color:var(--borde-instrumento)}
+#grafica #areaGrafica{fill:url(#rellenoGrafica);stroke:none}.grafica #linea,#grafica #linea{filter:drop-shadow(0 0 2px var(--tono))}#puntoGrafica{fill:var(--tono);stroke:var(--fondo);stroke-width:1;transition:fill .8s linear}
+#recal{margin-top:2px;border-color:rgba(79,195,217,.55);background:linear-gradient(90deg,rgba(79,195,217,.08),transparent);text-align:left;padding:12px 14px}
+#isotopos{text-align:left;padding-left:2px}
+@media (max-width:355px){.sondeo-instrumentos{grid-template-columns:1fr 108px;gap:7px}.instrumento strong{font-size:11px}.instrumento{padding:5px}.sondeo-subtitulo{font-size:8px}}
+@media (prefers-reduced-motion:reduce){#radarBarrido,.estado-sistema i{animation:none}#marcadorProfundidad{transition:none}}

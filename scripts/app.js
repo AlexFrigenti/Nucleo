@@ -495,6 +495,23 @@ function tonoActual(jps){
   document.documentElement.style.setProperty('--pulso', (3.2 - t*2.2).toFixed(2)+'s');
 }
 
+function actualizarInstrumentos(profM, jps){
+  // Lecturas decorativas, pero coherentes con la profundidad: no modifican mecánicas.
+  const km = profM / 1000;
+  const temperatura = Math.max(14, 16 + km * 24 - Math.sin(km * .8) * Math.min(18, km * 2));
+  const presion = Math.max(.1, profM * .027);
+  const densidad = Math.min(12.8, 2.70 + Math.log10(profM + 1) * .49);
+  const periodo = profM < 3000 ? 'EN MUESTREO' : (Math.max(.4, 41 - Math.log10(profM / 3000 + 1) * 12)).toFixed(profM > 120000 ? 1 : 0).replace('.', ',') + ' s';
+  $('instTemperatura').textContent = Math.round(temperatura).toString() + ' °C';
+  $('instPresion').textContent = presion < 10 ? presion.toFixed(1).replace('.', ',') + ' MPa' : Math.round(presion).toString() + ' MPa';
+  $('instDensidad').textContent = densidad.toFixed(2).replace('.', ',') + ' g/cm³';
+  $('instPeriodo').textContent = periodo;
+  // Escala logarítmica: permite que los primeros metros y el núcleo sean legibles en el mismo perfil.
+  const posicion = Math.min(98, Math.max(2, Math.log10(profM + 1) / Math.log10(6371001) * 96));
+  $('marcadorProfundidad').style.top = posicion.toFixed(2) + '%';
+  $('telemetriaEstado').textContent = jps > 0 ? 'ACTIVO · 60 s' : 'EN ESPERA · 60 s';
+}
+
 /* ============ GRÁFICA DE LOS ÚLTIMOS 60 s ============ */
 const historial = new Array(60).fill(0);
 function pintarGrafica(){
@@ -504,7 +521,12 @@ function pintarGrafica(){
     const y = 43 - (v/max)*40;
     return (i?'L':'M') + x.toFixed(1) + ' ' + y.toFixed(1);
   });
-  $('linea').setAttribute('d', pts.join(' '));
+  const linea = pts.join(' ');
+  $('linea').setAttribute('d', linea);
+  $('areaGrafica').setAttribute('d', linea + ' L300 44 L0 44 Z');
+  const ultimoPunto = historial[historial.length-1];
+  $('puntoGrafica').setAttribute('cx', '300');
+  $('puntoGrafica').setAttribute('cy', (43 - (ultimoPunto/max)*40).toFixed(1));
 }
 
 /* ============ BUCLE PRINCIPAL ============ */
@@ -546,6 +568,8 @@ function dibujar(jps){
   const profM = profundidad();
   $('prof').textContent = fmtMetros(profM) + ' m';
   $('estrato').textContent = estratoDe(profM);
+  $('radarProfundidad').textContent = fmtMetros(profM) + ' m';
+  actualizarInstrumentos(profM, jps);
   $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
 
   // anillo: avance hacia el siguiente isótopo

@@ -13,7 +13,9 @@ Funciona en cualquier navegador. En el iPhone se puede añadir a la pantalla de 
 ### La web (lo que se juega)
 | Archivo | Qué es |
 |---|---|
-| `index.html` | **El juego entero** (HTML, CSS y JS en un solo archivo). |
+| `index.html` | Entrada y estructura del juego. |
+| `styles/app.css` | Sistema visual, diseño móvil y animaciones. |
+| `scripts/app.js` | Simulación, guardado y renderizado de la interfaz. |
 | `registro.js` | Las entradas del Registro de perforación (el lore). |
 | `sw.js` | *Service worker*: guarda copia para uso offline y gestiona las actualizaciones. |
 | `manifest.webmanifest` | Ficha de la PWA (nombre, colores, pantalla completa). |
@@ -33,7 +35,7 @@ Funciona en cualquier navegador. En el iPhone se puede añadir a la pantalla de 
 
 ## Cómo actualizar el juego
 
-1. Editar `index.html` (o `registro.js`, etc.).
+1. Editar `index.html`, `styles/app.css`, `scripts/app.js` o `registro.js`.
 2. **Subir el número de versión en DOS sitios al mismo valor** (si no, no salta el aviso de actualización):
    - En `index.html`: la línea `const VERSION = N;`
    - En `version.json`: `{ "v": N }`
@@ -73,6 +75,8 @@ npx cap sync ios   # sincroniza con el proyecto iOS
 ## Notas técnicas
 
 - Sin frameworks ni dependencias en el juego: HTML/CSS/JS puro.
+- La simulación usa `requestAnimationFrame`; el render visual se limita a 10 fps,
+  se pausa en segundo plano y deja de animar el radar fuera de Sondeo.
 - **Prestigio** ("recalibrar"): cierra el pozo y abre otro; los isótopos (muestras) se conservan y multiplican la producción (×1,05 por muestra).
 - **Profundidad** = √(julios producidos en el pozo actual), en metros. 1 muestra = 1.000 m. Referencia real: récord de Kola, 12.262 m.
 - El **Registro** y los **Hitos** se guardan en la partida y no se pierden al recalibrar.

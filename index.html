@@ -10,385 +10,144 @@
 <link rel="icon" type="image/png" href="./icon-192.png">
 <title>Núcleo</title>
 
-<style>
-:root{
-  --fondo:#0E1218;
-  --capa:#161C25;
-  --capa-alta:#1D2530;
-  --linea:#26313F;
-  --texto:#E6EDF5;
-  --tenue:#7C8B9E;
-  --frio:#4FC3D9;
-  --calor:#F0A22E;
-  --ardiendo:#FF5E3A;
-  --tono:var(--frio);
-  --pulso:3s;
-  --mono:ui-monospace,"SF Mono",Menlo,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
-  --grid:rgba(130,165,195,.05);
-  --grid2:rgba(130,165,195,.14);
-  --senal-dur:6s;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--fondo);color:var(--texto);font-family:var(--sans);overscroll-behavior:none}
-body{
-  padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 82px);
-  max-width:540px;margin:0 auto;
-  -webkit-user-select:none;user-select:none;
-}
-.eyebrow{
-  font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--tenue);font-weight:600;
-}
-
-/* --- aviso de progreso offline --- */
-#offline{
-  display:none;border:1px solid var(--linea);background:var(--capa);
-  border-radius:12px;padding:11px 13px;margin-bottom:16px;
-  font-size:13px;color:var(--tenue);line-height:1.45;
-}
-#offline b{color:var(--calor);font-family:var(--mono);font-weight:600}
-
-/* --- aviso de nueva versión --- */
-#actualiza{
-  display:none;border:1px solid var(--frio);background:var(--capa);
-  border-radius:12px;padding:12px 13px;margin-bottom:16px;cursor:pointer;
-  font-size:13px;color:var(--frio);line-height:1.45;font-weight:600;text-align:center;
-}
-#actualiza:active{background:var(--capa-alta)}
-
-/* --- el núcleo --- */
-#nucleo{
-  position:relative;display:flex;flex-direction:column;align-items:center;
-  padding:6px 0 2px;cursor:pointer;
-}
-#anillo{width:200px;height:200px;display:block}
-#anillo .pista{fill:none;stroke:var(--linea);stroke-width:3}
-#anillo .carga{
-  fill:none;stroke:var(--tono);stroke-width:3;stroke-linecap:round;
-  transition:stroke-dashoffset .3s linear,stroke .8s linear;
-}
-#halo{
-  position:absolute;top:31px;width:150px;height:150px;border-radius:50%;
-  background:radial-gradient(circle,var(--tono) 0%,transparent 68%);
-  opacity:.16;animation:latido var(--pulso) ease-in-out infinite;pointer-events:none;
-}
-@keyframes latido{0%,100%{transform:scale(.86);opacity:.10}50%{transform:scale(1.06);opacity:.26}}
-#lectura{position:absolute;top:0;height:200px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;pointer-events:none}
-#julios{font-family:var(--mono);font-size:34px;font-weight:600;
-  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-#prof{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tenue);
-  font-variant-numeric:tabular-nums;letter-spacing:.03em;margin-top:1px}
-#cabPozo{text-transform:none;font-family:var(--mono)}
-#tasa{font-family:var(--mono);font-size:14px;color:var(--tono);
-  font-variant-numeric:tabular-nums;transition:color .8s linear}
-#restante{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);margin-top:2px}
-
-/* --- señal de fondo (el 'periodo') --- */
-#senal{
-  position:relative;height:22px;margin:4px 0 6px;overflow:hidden;opacity:.55;
-  background-repeat:repeat-x;background-position:0 center;
-  animation:desliza var(--senal-dur) linear infinite;
-}
-#senal .senal-lbl{
-  position:absolute;left:0;top:50%;transform:translateY(-50%);
-  font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--tenue);
-  background:var(--fondo);padding-right:8px;
-}
-@keyframes desliza{to{background-position:-80px center}}
-
-/* --- indicador de estrato --- */
-#estrato{
-  text-align:center;font-family:var(--mono);font-size:11px;font-weight:600;
-  letter-spacing:.2em;color:var(--tenue);margin:4px 0 2px;
-}
-
-/* --- telemetría / gráfica osciloscopio --- */
-#telemetria{margin:10px 0 22px}
-.tel-cab{display:flex;justify-content:space-between;
-  font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--tenue);margin-bottom:5px}
-#grafica{width:100%;height:54px;display:block;overflow:visible;
-  border:1px solid var(--linea);border-radius:6px;background:rgba(0,0,0,.18)}
-#grafica path{fill:none;stroke:var(--tono);stroke-width:1.5;stroke-linejoin:round;
-  transition:stroke .8s linear}
-#grafica .base{stroke:var(--linea);stroke-width:1}
-#grafica .rejilla line{stroke:var(--grid2);stroke-width:1;vector-effect:non-scaling-stroke}
-
-/* --- secciones --- */
-h2{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--tenue);
-  font-weight:600;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;
-  border-bottom:1px solid var(--linea);padding-bottom:8px}
-h2 span{font-family:var(--mono);letter-spacing:0;text-transform:none;font-size:11px}
-section{margin-bottom:26px}
-
-/* --- fichas --- */
-.ficha{
-  width:100%;text-align:left;display:grid;
-  grid-template-columns:1fr auto;gap:2px 10px;align-items:center;
-  background:var(--capa);border:1px solid var(--linea);border-radius:12px;
-  padding:12px 14px;margin-bottom:8px;color:var(--texto);
-  font-family:var(--sans);transition:background .12s,border-color .12s,opacity .2s;
-}
-.ficha:active{background:var(--capa-alta)}
-.ficha[disabled]{opacity:.4}
-.ficha .nombre{font-size:15px;font-weight:600;letter-spacing:-.01em}
-.ficha .detalle{grid-column:1;font-size:11px;color:var(--tenue);font-family:var(--mono);
-  font-variant-numeric:tabular-nums}
-.ficha .precio{grid-row:1/3;font-family:var(--mono);font-size:14px;font-weight:600;
-  text-align:right;font-variant-numeric:tabular-nums}
-.ficha .cant{grid-row:1/3;font-family:var(--mono);font-size:20px;font-weight:600;
-  color:var(--tenue);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
-.asequible .precio{color:var(--calor)}
-.ficha .precio{white-space:nowrap}
-.ficha.mejora{border-style:dashed}
-
-/* --- selector de cantidad de compra --- */
-#selCompra{display:flex;gap:6px;margin-bottom:10px}
-#selCompra .sel{
-  flex:1;padding:8px 0;border-radius:9px;
-  background:var(--capa);border:1px solid var(--linea);color:var(--tenue);
-  font-family:var(--mono);font-size:12px;font-weight:600;
-}
-#selCompra .sel:active{background:var(--capa-alta)}
-#selCompra .sel.activo{border-color:var(--frio);color:var(--frio);background:var(--capa-alta)}
-
-/* --- glifo animado de cada módulo --- */
-.ficha.modulo{grid-template-columns:28px 1fr auto auto;column-gap:12px}
-.ficha.modulo .glifo{grid-column:1;grid-row:1/3;width:26px;height:26px;
-  color:var(--tenue);display:flex;align-items:center;justify-content:center;
-  transition:color .8s linear,opacity .3s}
-.ficha.modulo .glifo svg{width:100%;height:100%;overflow:hidden}
-.ficha.modulo .nombre{grid-column:2;grid-row:1;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.ficha .nom-tasa{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--frio);
-  font-variant-numeric:tabular-nums;letter-spacing:0}
-.ficha.modulo .detalle{grid-column:2;grid-row:2}
-.ficha.modulo .cant{grid-column:3;grid-row:1/3}
-.ficha.modulo .precio{grid-column:4;grid-row:1/3}
-.ficha.modulo.activo .glifo{color:var(--tono)}
-.ficha.modulo:not(.activo) .glifo{opacity:.3}
-.ficha.modulo:not(.activo) .glifo .anim,
-.ficha.modulo:not(.activo) .glifo .anim2{animation-play-state:paused}
-
-.glifo .anim,.glifo .anim2{transform-box:fill-box;transform-origin:center}
-@keyframes girar{to{transform:rotate(360deg)}}
-@keyframes latir{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(2px);opacity:1}}
-@keyframes fluir{to{stroke-dashoffset:-8}}
-@keyframes onda{0%{transform:scale(.3);opacity:.9}100%{transform:scale(1.55);opacity:0}}
-@keyframes ondular{to{transform:translateX(-6px)}}
-@keyframes nucleo{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.1);opacity:1}}
-@keyframes parpadeo{0%,100%{opacity:.55}50%{opacity:1}}
-.g-sonda   .anim{transform-origin:center top;animation:latir 1.3s ease-in-out infinite}
-.g-turbina .anim{animation:girar 2.2s linear infinite}
-.g-inter   .anim{animation:fluir 1s linear infinite}
-.g-inter   .anim2{animation:fluir 1s linear infinite reverse}
-.g-bucle   .anim{animation:girar 3s linear infinite}
-.g-pozo    .anim{animation:onda 2s ease-out infinite}
-.g-pozo    .d2{animation-delay:1s}
-.g-manto   .anim{animation:ondular 2.4s linear infinite}
-.g-externo .anim{animation:girar 4s linear infinite}
-.g-interno .anim{animation:nucleo 1.6s ease-in-out infinite}
-.g-plasma  .anim{animation:girar 1.4s linear infinite,parpadeo .6s ease-in-out infinite}
-
-/* --- recalibrar --- */
-#recal{display:none;width:100%;padding:15px;border-radius:12px;
-  background:transparent;border:1px solid var(--frio);color:var(--frio);
-  font-family:var(--sans);font-size:14px;font-weight:600}
-#recal:active{background:rgba(79,195,217,.1)}
-#recal small{display:block;font-weight:400;font-size:11px;opacity:.75;margin-top:3px;
-  font-family:var(--mono)}
-
-/* --- estadísticas --- */
-.stat-fila{
-  display:flex;justify-content:space-between;align-items:baseline;
-  padding:10px 2px;border-bottom:1px solid var(--linea);font-size:13px;
-}
-.stat-fila:last-child{border-bottom:none}
-.stat-fila .etq{color:var(--tenue)}
-.stat-fila .val{font-family:var(--mono);font-variant-numeric:tabular-nums}
-
-/* --- sincronizar partida --- */
-#secDatos .datos-btn{
-  width:100%;padding:13px 14px;border-radius:12px;margin-bottom:8px;
-  background:var(--capa);border:1px solid var(--linea);color:var(--texto);
-  font-family:var(--sans);font-size:14px;font-weight:600;text-align:left;
-}
-#secDatos .datos-btn:active{background:var(--capa-alta)}
-#secDatos #borrar{color:var(--ardiendo);border-color:rgba(255,94,58,.4)}
-#secDatos #version{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--tenue);text-align:center}
-#secDatos #btnCargar{display:none;border-color:var(--frio);color:var(--frio)}
-#secDatos #datosArea{
-  display:none;width:100%;min-height:72px;margin-bottom:8px;padding:11px 13px;
-  border-radius:12px;background:var(--capa);border:1px solid var(--linea);color:var(--texto);
-  font-family:var(--mono);font-size:12px;line-height:1.4;resize:vertical;
-  -webkit-user-select:text;user-select:text;
-}
-#secDatos #datosMsg{font-size:12px;color:var(--frio);margin-bottom:8px;
-  min-height:1em;font-family:var(--mono);line-height:1.4}
-
-/* --- cabecera compartida --- */
-#cabecera{margin-bottom:6px}
-#recal{margin-bottom:6px}
-#isotopos{text-align:center;font-size:11px;color:var(--tenue);font-family:var(--mono);margin-top:4px}
-
-/* --- páginas --- */
-.pagina.oculta{display:none}
-.vacio{color:var(--tenue);font-size:13px;line-height:1.5;padding:6px 2px}
-
-/* --- barra de navegación inferior --- */
-#navbar{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:0;
-  width:100%;max-width:540px;display:flex;z-index:10;
-  background:rgba(14,18,24,.93);border-top:1px solid var(--linea);
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-  padding-bottom:env(safe-area-inset-bottom);
-}
-#navbar .nav-tab{
-  position:relative;
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:9px 0 8px;background:none;border:none;
-  color:var(--tenue);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.02em;
-}
-#navbar .nav-tab .ic{width:22px;height:22px;display:block}
-#navbar .nav-tab.activo{color:var(--frio)}
-#navbar .nav-tab:active{background:rgba(255,255,255,.05)}
-#navbar .nav-tab .badge{
-  position:absolute;top:5px;left:calc(50% + 6px);
-  min-width:16px;height:16px;padding:0 4px;border-radius:8px;
-  background:var(--ardiendo);color:#fff;font-size:10px;font-weight:700;
-  line-height:16px;text-align:center;display:none;
-}
-#navbar .nav-tab .badge.on{display:block}
-
-/* --- registro de perforación --- */
-.reg-entrada{
-  border:1px solid var(--linea);background:var(--capa);border-radius:12px;
-  padding:12px 14px;margin-bottom:10px;
-}
-.reg-entrada .reg-cab{
-  font-family:var(--mono);font-size:11px;color:var(--frio);
-  letter-spacing:.06em;margin-bottom:7px;
-}
-.reg-entrada .reg-txt{font-size:13px;line-height:1.55;color:var(--texto);white-space:pre-line}
-.reg-entrada.final{border-color:var(--ardiendo);background:rgba(255,94,58,.06)}
-.reg-entrada.final .reg-cab{color:var(--ardiendo)}
-
-/* --- overlay de cierre de pozo --- */
-#cierre{
-  position:fixed;inset:0;z-index:50;display:none;padding:24px;
-  align-items:center;justify-content:center;
-  background:rgba(8,10,14,.94);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-}
-#cierre.on{display:flex}
-#cierre .caja{
-  max-width:420px;width:100%;background:var(--capa);
-  border:1px solid var(--linea);border-radius:14px;padding:20px;
-}
-#cierre .cierre-cab{font-family:var(--mono);font-size:11px;color:var(--tenue);
-  letter-spacing:.1em;margin-bottom:12px}
-#cierre .cierre-txt{font-size:14px;line-height:1.6;color:var(--texto);
-  white-space:pre-line;margin-bottom:20px;font-family:var(--mono)}
-#cierre button{
-  width:100%;padding:14px;border-radius:12px;background:transparent;
-  border:1px solid var(--frio);color:var(--frio);
-  font-family:var(--sans);font-size:14px;font-weight:600;
-}
-#cierre button:active{background:rgba(79,195,217,.1)}
-
-/* --- hitos --- */
-#hitosResumen{color:var(--frio)}
-.hito{border:1px solid var(--linea);border-radius:10px;padding:10px 12px;margin-bottom:8px;
-  opacity:.42;transition:opacity .2s,border-color .2s}
-.hito.logrado{opacity:1;border-color:rgba(79,195,217,.4)}
-.hito .hito-nom{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--tenue)}
-.hito.logrado .hito-nom{color:var(--frio)}
-.hito .hito-desc{font-size:12px;color:var(--tenue);margin-top:3px;line-height:1.4}
-
-/* --- toast de hito --- */
-#hitoToast{
-  position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);z-index:60;
-  transform:translateX(-50%) translateY(-16px);
-  background:var(--capa-alta);border:1px solid var(--frio);color:var(--frio);
-  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.05em;
-  padding:10px 16px;border-radius:10px;max-width:90%;text-align:center;
-  opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;
-}
-#hitoToast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* --- +N flotante --- */
-.chispa{position:absolute;font-family:var(--mono);font-size:15px;font-weight:600;
-  color:var(--tono);pointer-events:none;animation:subir .7s ease-out forwards}
-@keyframes subir{to{transform:translateY(-46px);opacity:0}}
-
-@media (prefers-reduced-motion:reduce){
-  #halo{animation:none}.chispa{animation-duration:.01s}
-  .glifo .anim,.glifo .anim2{animation:none}
-}
-</style>
+<link rel="stylesheet" href="./styles/app.css">
 
 <div id="actualiza"></div>
 <div id="offline"></div>
 
-<!-- ===== CABECERA: siempre visible en todas las pestañas ===== -->
-<header id="cabecera">
-  <p class="eyebrow" id="cabPozo" style="text-align:center">POZO 01 · SONDEO PROFUNDO</p>
-
-  <div id="senal"><span class="senal-lbl">SEÑAL DE FONDO</span></div>
-
-  <div id="nucleo">
-    <div id="halo"></div>
-    <svg id="anillo" viewBox="0 0 200 200">
-      <circle class="pista" cx="100" cy="100" r="88"/>
-      <circle class="carga" cx="100" cy="100" r="88"
-              transform="rotate(-90 100 100)" stroke-dasharray="553" stroke-dashoffset="553"/>
-    </svg>
-    <div id="lectura">
-      <div id="julios">0</div>
-      <div id="prof">0 m</div>
-      <div id="tasa">0 J/s</div>
-      <div id="restante">toca para extraer</div>
-    </div>
-  </div>
-
-  <div id="estrato"></div>
-
-  <div id="telemetria">
-    <div class="tel-cab"><span>PRODUCCIÓN</span><span>ÚLTIMOS 60 s</span></div>
-    <svg id="grafica" viewBox="0 0 300 44" preserveAspectRatio="none">
-      <g class="rejilla">
-        <line x1="0" y1="11" x2="300" y2="11"/>
-        <line x1="0" y1="22" x2="300" y2="22"/>
-        <line x1="0" y1="33" x2="300" y2="33"/>
-        <line x1="75" y1="0" x2="75" y2="44"/>
-        <line x1="150" y1="0" x2="150" y2="44"/>
-        <line x1="225" y1="0" x2="225" y2="44"/>
-      </g>
-      <path class="base" d="M0 43 H300"/>
-      <path id="linea"/>
-    </svg>
-  </div>
-
-  <button id="recal"></button>
-  <div id="isotopos"></div>
-</header>
-
 <!-- ===== PÁGINAS: solo una visible a la vez ===== -->
 <main id="paginas">
 
-  <section class="pagina" data-pag="modulos">
-    <h2>Módulos <span id="totalMod"></span></h2>
-    <div id="selCompra">
-      <button class="sel activo" data-n="1">×1</button>
-      <button class="sel" data-n="10">×10</button>
-      <button class="sel" data-n="100">×100</button>
-      <button class="sel" data-n="max">Máx</button>
-    </div>
-    <div id="modulos"></div>
+  <section class="pagina pagina-sondeo" data-pag="sondeo">
+    <header id="cabecera">
+      <div class="sondeo-cab">
+        <div>
+          <p class="eyebrow" id="cabPozo">POZO 01 · SONDEO PROFUNDO</p>
+          <p class="sondeo-subtitulo">INTERFAZ DE EXTRACCIÓN GEOTÉRMICA</p>
+        </div>
+        <div class="estado-sistema"><i></i><span>SISTEMA ACTIVO</span></div>
+      </div>
+
+      <div id="senal"><span class="senal-lbl">SEÑAL DE FONDO · CANAL 03</span></div>
+
+      <div class="sondeo-instrumentos">
+        <div id="nucleo" aria-label="Extraer energía manualmente">
+          <div id="halo"></div>
+          <svg id="anillo" viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="arcoRadar" x1="0" x2="1"><stop stop-color="#4FC3D9"/><stop offset="1" stop-color="#F0A22E"/></linearGradient>
+            </defs>
+            <circle class="radar-radial r1" cx="100" cy="100" r="78"/>
+            <circle class="radar-radial r2" cx="100" cy="100" r="58"/>
+            <circle class="radar-radial r3" cx="100" cy="100" r="38"/>
+            <g class="marcas-radar">
+              <path d="M100 8v10M100 182v10M8 100h10M182 100h10M35 35l7 7M158 158l7 7M35 165l7-7M158 42l7-7"/>
+            </g>
+            <path id="radarBarrido" d="M100 100 L100 18 A82 82 0 0 1 165 50 Z"/>
+            <circle class="pista" cx="100" cy="100" r="88"/>
+            <circle class="carga" cx="100" cy="100" r="88"
+                    transform="rotate(-90 100 100)" stroke-dasharray="553" stroke-dashoffset="553"/>
+            <circle class="centro-radar" cx="100" cy="100" r="5"/>
+          </svg>
+          <div id="lectura">
+            <span class="lectura-etiqueta">ENERGÍA DISPONIBLE</span>
+            <div id="julios">0</div>
+            <div id="tasa">0 J/s</div>
+            <div id="prof">0 m</div>
+            <div id="restante">toca para extraer</div>
+          </div>
+          <span class="radar-accion">TOCAR · EXTRAER</span>
+        </div>
+
+        <aside id="instrumentos" aria-label="Lecturas de instrumentación">
+          <div class="instrumento"><span>TEMPERATURA</span><strong id="instTemperatura">16 °C</strong><small>MODELO TÉRMICO</small></div>
+          <div class="instrumento"><span>PRESIÓN</span><strong id="instPresion">0,1 MPa</strong><small>ESTIMADA</small></div>
+          <div class="instrumento"><span>DENSIDAD</span><strong id="instDensidad">2,70 g/cm³</strong><small>FORMACIÓN</small></div>
+          <div class="instrumento anomalía"><span>PERIODO</span><strong id="instPeriodo">—</strong><small>SEÑAL ANÓMALA</small></div>
+        </aside>
+      </div>
+
+      <section id="perfilGeologico" aria-label="Perfil geológico">
+        <div class="perfil-cab">
+          <span>ESTRATOS</span>
+          <strong id="estrato">CORTEZA CONTINENTAL</strong>
+        </div>
+        <div class="columna-estratos">
+          <div class="capa-geologica corteza"><span>CORTEZA</span></div>
+          <div class="capa-geologica manto-superior"><span>MANTO SUP.</span></div>
+          <div class="capa-geologica transicion"><span>TRANSICIÓN</span></div>
+          <div class="capa-geologica manto-inferior"><span>MANTO INF.</span></div>
+          <div class="capa-geologica nucleo-externo"><span>NÚCLEO EXT.</span></div>
+          <div class="capa-geologica nucleo-interno"><span>NÚCLEO INT.</span></div>
+          <div id="marcadorProfundidad"><i></i><b id="radarProfundidad">0 m</b></div>
+        </div>
+        <div class="perfil-pies"><span>0 m</span><span>6.371 km</span></div>
+      </section>
+
+      <div id="telemetria">
+        <div class="tel-cab"><span>PRODUCCIÓN</span><span id="telemetriaEstado">VENTANA · 60 s</span></div>
+        <svg id="grafica" viewBox="0 0 300 44" preserveAspectRatio="none" aria-label="Gráfica de producción">
+          <defs><linearGradient id="rellenoGrafica" x1="0" x2="0" y2="1"><stop stop-color="#4FC3D9" stop-opacity=".26"/><stop offset="1" stop-color="#4FC3D9" stop-opacity="0"/></linearGradient></defs>
+          <g class="rejilla">
+            <line x1="0" y1="11" x2="300" y2="11"/><line x1="0" y1="22" x2="300" y2="22"/><line x1="0" y1="33" x2="300" y2="33"/>
+            <line x1="75" y1="0" x2="75" y2="44"/><line x1="150" y1="0" x2="150" y2="44"/><line x1="225" y1="0" x2="225" y2="44"/>
+          </g>
+          <path class="base" d="M0 43 H300"/><path id="areaGrafica"/><path id="linea"/><circle id="puntoGrafica" r="2.5"/>
+        </svg>
+      </div>
+
+      <section id="muestraIsotopo" class="muestra-isotopo" aria-live="polite">
+        <div class="muestra-cab">
+          <span id="muestraEstado">ANÁLISIS EN CURSO</span>
+          <span id="muestraCodigo">FE-57</span>
+        </div>
+        <div class="muestra-cuerpo">
+          <div class="muestra-emblema" aria-hidden="true">
+            <span id="muestraSimbolo">Fe</span>
+            <i></i><i></i><i></i>
+          </div>
+          <div class="muestra-lectura">
+            <strong id="muestraNombre">HIERRO</strong>
+            <span id="muestraDetalle">Explorando firma espectral</span>
+            <div class="muestra-metricas">
+              <span>ESTAB. <b id="muestraEstabilidad">—</b></span>
+              <span>PUREZA <b id="muestraPureza">—</b></span>
+              <span>CANT. <b id="muestraCantidad">—</b></span>
+            </div>
+          </div>
+        </div>
+        <div class="muestra-espectro" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </section>
+
+      <button id="recal"></button>
+      <div id="isotopos"></div>
+    </header>
   </section>
 
-  <section class="pagina oculta" data-pag="mejoras">
-    <h2>Mejoras</h2>
-    <div id="mejoras"></div>
+  <section class="pagina oculta pagina-equipo" data-pag="equipo">
+    <header class="panel-cab equipo-cab">
+      <div><p class="eyebrow">SECCIÓN 02 · EQUIPO DE SONDEO</p><h1>Configuración de producción</h1></div>
+      <span class="panel-estado"><i></i> EN LÍNEA</span>
+    </header>
+    <div class="equipo-resumen" aria-label="Resumen de equipo">
+      <div><span>MÓDULOS</span><strong id="totalMod">0</strong><small>INSTALADOS</small></div>
+      <div><span>CAPACIDAD</span><strong id="capacidadEquipo">0 J/s</strong><small>PRODUCCIÓN</small></div>
+      <div><span>MEJORAS</span><strong id="mejorasResumen">0</strong><small>APLICADAS</small></div>
+    </div>
+    <div class="subseccion equipo-modulos">
+      <div class="subseccion-cab"><h2>Módulos instalables <span>TOCAR PARA DESPLEGAR</span></h2></div>
+      <div id="selCompra" aria-label="Cantidad de compra">
+        <button class="sel activo" data-n="1">×1</button>
+        <button class="sel" data-n="10">×10</button>
+        <button class="sel" data-n="100">×100</button>
+        <button class="sel" data-n="max">MÁX</button>
+      </div>
+      <div id="modulos"></div>
+    </div>
+    <div class="subseccion equipo-mejoras">
+      <div class="subseccion-cab"><h2>Mejoras de laboratorio <span id="mejorasDisponibles">EN ESPERA</span></h2></div>
+      <div id="mejoras"></div>
+    </div>
   </section>
 
   <section class="pagina oculta" data-pag="registro">
@@ -396,11 +155,31 @@ section{margin-bottom:26px}
     <div id="registroLista"></div>
   </section>
 
-  <section class="pagina oculta" data-pag="stats">
-    <h2>Estadísticas</h2>
-    <div id="statsPanel"></div>
-    <h2 style="margin-top:24px">Hitos <span id="hitosResumen"></span></h2>
-    <div id="hitosLista"></div>
+  <section class="pagina oculta pagina-sistema" data-pag="sistema">
+    <header class="panel-cab sistema-cab">
+      <div><p class="eyebrow">SECCIÓN 04 · DIAGNÓSTICO</p><h1>Estado del pozo</h1></div>
+      <span class="panel-estado"><i></i> ESTABLE</span>
+    </header>
+    <section id="estadoSistema" class="estado-sistema-panel" aria-label="Salud del sistema">
+      <div class="salud-cab"><span>INTEGRIDAD OPERATIVA</span><strong id="estadoGeneral">NOMINAL</strong></div>
+      <div class="salud-grid">
+        <div class="salud-medida"><div><span>INTEGRIDAD</span><b id="saludIntegridad">100%</b></div><i><em id="barraIntegridad"></em></i><small id="saludIntegridadNota">REVESTIMIENTO ESTABLE</small></div>
+        <div class="salud-medida"><div><span>REFRIGERACIÓN</span><b id="saludRefrigeracion">100%</b></div><i><em id="barraRefrigeracion"></em></i><small id="saludRefrigeracionNota">CARGA TÉRMICA BAJA</small></div>
+        <div class="salud-medida"><div><span>ENERGÍA</span><b id="saludEnergia">0%</b></div><i><em id="barraEnergia"></em></i><small id="saludEnergiaNota">MÓDULOS EN ESPERA</small></div>
+      </div>
+    </section>
+    <section class="eventos-panel" aria-label="Eventos recientes">
+      <div class="subseccion-cab"><h2>Eventos recientes <span id="eventosEstado">CANAL DE OPERACIÓN</span></h2></div>
+      <div id="eventosRecientes"></div>
+    </section>
+    <section class="estadisticas-panel">
+      <div class="subseccion-cab"><h2>Telemetría acumulada</h2></div>
+      <div id="statsPanel"></div>
+    </section>
+    <section class="hitos-panel">
+      <div class="subseccion-cab"><h2>Hitos <span id="hitosResumen"></span></h2></div>
+      <div id="hitosLista"></div>
+    </section>
   </section>
 
   <section class="pagina oculta" data-pag="ajustes" id="secDatos">
@@ -419,26 +198,25 @@ section{margin-bottom:26px}
 </main>
 
 <!-- ===== NAVEGACIÓN INFERIOR FIJA ===== -->
-<nav id="navbar">
-  <button class="nav-tab activo" data-pag="modulos">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
-    <span>Módulos</span>
+<nav id="navbar" aria-label="Navegación principal">
+  <button class="nav-tab activo" data-pag="sondeo" aria-label="Sondeo">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    <span>Sondeo</span>
   </button>
-  <button class="nav-tab" data-pag="mejoras">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg>
-    <span>Mejoras</span>
+  <button class="nav-tab" data-pag="equipo" aria-label="Equipo">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+    <span>Equipo</span>
   </button>
-  <button class="nav-tab" data-pag="registro">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
-    <span class="badge" id="regBadge"></span>
-    <span>Registro</span>
+  <button class="nav-tab" data-pag="registro" aria-label="Registro">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+    <span class="badge" id="regBadge"></span><span>Registro</span>
   </button>
-  <button class="nav-tab" data-pag="stats">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11"/><path d="M12 20V4"/><path d="M19 20v-6"/></svg>
-    <span>Stats</span>
+  <button class="nav-tab" data-pag="sistema" aria-label="Sistema">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>
+    <span>Sistema</span>
   </button>
-  <button class="nav-tab" data-pag="ajustes">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9"/><path d="M18 8h2"/><circle cx="15.5" cy="8" r="2.3"/><path d="M4 16h4"/><path d="M13 16h7"/><circle cx="9.5" cy="16" r="2.3"/></svg>
+  <button class="nav-tab" data-pag="ajustes" aria-label="Ajustes">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h9M18 8h2M4 16h4M13 16h7"/><circle cx="15.5" cy="8" r="2.3"/><circle cx="9.5" cy="16" r="2.3"/></svg>
     <span>Ajustes</span>
   </button>
 </nav>
@@ -454,743 +232,4 @@ section{margin-bottom:26px}
 <div id="hitoToast"></div>
 
 <script src="./registro.js"></script>
-<script>
-/* ============ ALMACENAMIENTO ============
-   Funciona tanto dentro de Claude como en Safari en tu iPhone. */
-const Guardado = {
-  async leer(k){
-    try{
-      if(window.storage){const r = await window.storage.get(k); return r ? r.value : null;}
-      return localStorage.getItem(k);
-    }catch(e){ return null; }
-  },
-  async escribir(k,v){
-    try{
-      if(window.storage){ await window.storage.set(k,v); }
-      else { localStorage.setItem(k,v); }
-    }catch(e){ /* si falla, seguimos jugando */ }
-  }
-};
-const CLAVE = 'nucleo_v1';
-
-/* ============ CONTENIDO DEL JUEGO ============ */
-const MODULOS = [
-  {id:'sonda',  nombre:'Sonda térmica',  base:15,      prod:0.1},
-  {id:'turbina',nombre:'Turbina',        base:120,     prod:1},
-  {id:'inter',  nombre:'Intercambiador', base:1400,    prod:8},
-  {id:'bucle',  nombre:'Bucle de vapor', base:20000,   prod:47},
-  {id:'pozo',   nombre:'Perforadora profunda', base:330000,  prod:260},
-  {id:'manto',  nombre:'Taladro de diamante',  base:5100000, prod:1400},
-  {id:'externo',nombre:'Perforadora sónica',  base:85000000,    prod:7800},
-  {id:'interno',nombre:'Cañón de partículas', base:1400000000,  prod:44000},
-  {id:'plasma', nombre:'Forja de plasma',base:24000000000, prod:255000}
-];
-const CRECIMIENTO = 1.15;
-
-const MEJORAS = [
-  {id:'m1', nombre:'Aislante cerámico',    coste:500,      obj:'sonda',   mult:2,   req:s=>s.mod.sonda>=10,   nota:'Sondas x2'},
-  {id:'m2', nombre:'Golpe firme',          coste:1200,     obj:'toque',   mult:5,   req:s=>s.toques>=25,      nota:'Extracción manual x5'},
-  {id:'m3', nombre:'Rodamiento magnético', coste:6000,     obj:'turbina', mult:2,   req:s=>s.mod.turbina>=10, nota:'Turbinas x2'},
-  {id:'m4', nombre:'Doble circuito',       coste:60000,    obj:'inter',   mult:2,   req:s=>s.mod.inter>=10,   nota:'Intercambiadores x2'},
-  {id:'m5', nombre:'Blindaje de wolframio',coste:250000,   obj:'global',  mult:1.5, req:s=>s.mod.bucle>=5,    nota:'Producción total x1,5'},
-  {id:'m6', nombre:'Presión crítica',      coste:900000,   obj:'bucle',   mult:2,   req:s=>s.mod.bucle>=10,   nota:'Bucles x2'},
-  {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Perforadoras ×2'},
-  {id:'m8', nombre:'Refrigeración forzada',coste:40000000,    obj:'manto',   mult:2,   req:s=>s.mod.manto>=10,   nota:'Taladros ×2'},
-  {id:'m9', nombre:'Resonancia sísmica',   coste:150000000,   obj:'global',  mult:1.5, req:s=>s.mod.externo>=5,  nota:'Producción total x1,5'},
-  {id:'m10',nombre:'Amplificador sónico',  coste:900000000,   obj:'externo', mult:2,   req:s=>s.mod.externo>=10, nota:'Perforadoras sónicas ×2'},
-  {id:'m11',nombre:'Acelerador lineal',    coste:12000000000, obj:'interno', mult:2,   req:s=>s.mod.interno>=10, nota:'Cañones de partículas ×2'},
-  {id:'m12',nombre:'Campo de Higgs',       coste:100000000000,obj:'plasma',  mult:3,   req:s=>s.mod.plasma>=10,  nota:'Forjas de plasma x3'}
-];
-
-/* ---- niveles de mejora generados para cada módulo ----
-   Cada módulo ya tiene su mejora "I" (arriba). Aquí añadimos II, III, IV y V,
-   que se desbloquean al tener 25, 50, 100 y 200 de ese módulo. */
-const TIERS_MOD = [
-  {req:25,  etiqueta:'II',  mult:3, factor:5e3},
-  {req:50,  etiqueta:'III', mult:3, factor:1.6e5},
-  {req:100, etiqueta:'IV',  mult:4, factor:1.8e8},
-  {req:200, etiqueta:'V',   mult:5, factor:2e14}
-];
-MODULOS.forEach(m=>{
-  TIERS_MOD.forEach(t=>{
-    MEJORAS.push({
-      id: m.id + t.req,
-      nombre: m.nombre + ' ' + t.etiqueta,
-      coste: Math.round(m.base * t.factor),
-      obj: m.id,
-      mult: t.mult,
-      req: ((id,req)=> st => st.mod[id] >= req)(m.id, t.req),
-      nota: m.nombre + ' ×' + t.mult
-    });
-  });
-});
-// mejora global potente de remate
-MEJORAS.push({
-  id:'superc', nombre:'Superconductor', coste:5e11, obj:'global', mult:2,
-  req:s=>s.mod.interno>=15, nota:'Producción total ×2'
-});
-
-/* ---- mejoras especiales: mecánicas distintas, no solo ×N de un módulo ----
-   Las de obj:'especial' no multiplican nada por sí solas; su efecto está
-   enganchado a mano en el código (busca tieneMejora('id')). */
-MEJORAS.push(
-  {id:'percutor',  nombre:'Percutor hidráulico', coste:2e6,  obj:'toque',    mult:10, req:s=>s.toques>=200, nota:'Extracción manual ×10'},
-  {id:'sismografo',nombre:'Sismógrafo',          coste:5e7,  obj:'especial', mult:1,  req:s=>s.toques>=100, nota:'Cada toque suma +5% de tu producción/s'},
-  {id:'bateria',   nombre:'Batería geotérmica',  coste:1e7,  obj:'especial', mult:1,  req:s=>s.isotopos>=1, nota:'Progreso sin conexión: 8 h → 24 h'},
-  {id:'enriq',     nombre:'Enriquecimiento',     coste:5e9,  obj:'especial', mult:1,  req:s=>s.isotopos>=5, nota:'Cada isótopo multiplica ×1,07 (antes ×1,05)'},
-  {id:'simbiosis', nombre:'Simbiosis de red',    coste:5e10, obj:'global',   mult:2,  req:s=>MODULOS.every(m=>s.mod[m.id]>=25), nota:'Producción total ×2 · con 25 de cada módulo'}
-);
-
-const UMBRAL = 1e6;                    // julios por el primer isótopo
-const TOPE_AUSENTE = 8*3600;           // máximo 8 h de progreso sin abrir
-
-/* ============ ESTADO ============ */
-let s = nuevaPartida();
-function nuevaPartida(){
-  const mod = {}; MODULOS.forEach(m=>mod[m.id]=0);
-  return { j:0, totalCiclo:0, mod, mejoras:[], isotopos:0, toques:0, t:Date.now(),
-           totalVida:0, tiempoJuego:0, mejorTasa:0, toquesVida:0, recalibraciones:0,
-           registro:[], registroLeidos:[], logros:[] };
-}
-
-/* ============ CÁLCULOS ============ */
-const tieneMejora = id => s.mejoras.includes(id);
-// mejoras que puedes ver ahora (no compradas y con su requisito cumplido), baratas primero
-function mejorasVisibles(){
-  return MEJORAS.filter(u=>!tieneMejora(u.id) && u.req(s)).sort((a,b)=>a.coste-b.coste);
-}
-function multiplicadorDe(objetivo){
-  let m = 1;
-  MEJORAS.forEach(u=>{ if(u.obj===objetivo && tieneMejora(u.id)) m *= u.mult; });
-  return m;
-}
-function bonusGlobal(){
-  // bonus multiplicativo por muestra: cada isótopo compone (antes era lineal y se estancaba)
-  const base = tieneMejora('enriq') ? 1.07 : 1.05;
-  const bonusHitos = 1 + 0.02 * (s.logros ? s.logros.length : 0);
-  // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
-  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos, 1e300);
-}
-function produccionDe(m){
-  return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal();
-}
-function porSegundo(){
-  return MODULOS.reduce((t,m)=>t+produccionDe(m), 0);
-}
-function porToque(){
-  return 1 * multiplicadorDe('toque') * bonusGlobal();
-}
-function costeDe(m){
-  return m.base * Math.pow(CRECIMIENTO, s.mod[m.id]);
-}
-// coste total de comprar k unidades seguidas (suma geométrica)
-function costeVarios(m,k){
-  return costeDe(m) * (Math.pow(CRECIMIENTO,k) - 1) / (CRECIMIENTO - 1);
-}
-// cuántas unidades puedes permitirte ahora mismo
-function maxAsequible(m){
-  const cd = costeDe(m);
-  const ratio = 1 + s.j*(CRECIMIENTO-1)/cd;
-  let k = ratio > 1 ? Math.floor(Math.log(ratio)/Math.log(CRECIMIENTO)) : 0;
-  if(k < 0) k = 0;
-  while(k > 0 && costeVarios(m,k) > s.j) k--; // margen por redondeo
-  return k;
-}
-function isotoposAlRecalibrar(){
-  return Math.floor(Math.sqrt(s.totalCiclo / UMBRAL));
-}
-
-/* ============ FORMATO DE NÚMEROS ============ */
-const SUF = ['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
-function fmt(n){
-  if(!isFinite(n)) return '∞';
-  if(n < 0) return '0';
-  if(n < 1000) return n < 10 ? (Math.round(n*10)/10).toString() : Math.floor(n).toString();
-  let i = Math.min(Math.floor(Math.log10(n)/3), SUF.length-1);
-  const v = n / Math.pow(1000,i);
-  const txt = v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v).toString();
-  return txt.replace('.',',') + ' ' + SUF[i];
-}
-function fmtTiempo(seg){
-  const h = Math.floor(seg/3600), m = Math.floor(seg%3600/60);
-  if(h) return h+' h '+m+' min';
-  if(m) return m+' min';
-  return Math.floor(seg)+' s';
-}
-// profundidad del pozo (m) = raíz de los julios producidos este ciclo
-function profundidad(){ return Math.floor(Math.sqrt(Math.max(0, s.totalCiclo))); }
-function fmtMetros(n){ return Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-// estrato geológico según profundidad (fronteras reales, alineadas con el Registro)
-const ESTRATOS = [
-  {min:6371000, n:'CENTRO GEOMÉTRICO'},
-  {min:5150000, n:'NÚCLEO INTERNO'},
-  {min:2890000, n:'NÚCLEO EXTERNO'},
-  {min:660000,  n:'MANTO INFERIOR'},
-  {min:410000,  n:'ZONA DE TRANSICIÓN'},
-  {min:35000,   n:'MANTO SUPERIOR'},
-  {min:0,       n:'CORTEZA CONTINENTAL'}
-];
-function estratoDe(prof){ for(const e of ESTRATOS){ if(prof >= e.min) return e.n; } return 'CORTEZA CONTINENTAL'; }
-
-/* ============ CONSTRUCCIÓN DE LA INTERFAZ ============ */
-const $ = id => document.getElementById(id);
-const ref = {};
-
-/* dibujos animados de cada módulo (SVG) */
-const GLIFOS = {
-  sonda:'<svg class="g-sonda" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v9"/><path class="anim" d="M9 13h6l-3 5z" fill="currentColor" stroke="none"/></svg>',
-  turbina:'<svg class="g-turbina" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><g class="anim"><rect width="24" height="24" fill="none"/><path d="M12 12V3"/><path d="M12 12l7.8 4.5"/><path d="M12 12L4.2 16.5"/></g><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>',
-  inter:'<svg class="g-inter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="anim" d="M3 9h18" stroke-dasharray="4 4"/><path class="anim2" d="M21 15H3" stroke-dasharray="4 4"/></svg>',
-  bucle:'<svg class="g-bucle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle class="anim" cx="12" cy="12" r="7.5" stroke-dasharray="7 5"/></svg>',
-  pozo:'<svg class="g-pozo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle class="anim" cx="12" cy="12" r="6"/><circle class="anim d2" cx="12" cy="12" r="6"/></svg>',
-  manto:'<svg class="g-manto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="anim" d="M-4 12q3-5 6 0t6 0t6 0t6 0"/></svg>',
-  externo:'<svg class="g-externo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle class="anim" cx="12" cy="12" r="7.5" stroke-dasharray="30 14"/></svg>',
-  interno:'<svg class="g-interno" viewBox="0 0 24 24" fill="none"><circle class="anim" cx="12" cy="12" r="5.5" fill="currentColor"/></svg>',
-  plasma:'<svg class="g-plasma" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><g class="anim"><rect width="24" height="24" fill="none"/><path d="M12 3v18"/><path d="M3 12h18"/><path d="M5.5 5.5l13 13"/><path d="M18.5 5.5l-13 13"/></g></svg>'
-};
-
-function crearFichas(){
-  const cm = $('modulos'); cm.innerHTML='';
-  MODULOS.forEach(m=>{
-    const b = document.createElement('button');
-    b.className='ficha modulo';
-    b.innerHTML = `<div class="glifo">${GLIFOS[m.id]||''}</div>
-      <div class="nombre"><span class="nom-txt">${m.nombre}</span><span class="nom-tasa"></span></div>
-      <div class="detalle"></div>
-      <div class="cant"></div>
-      <div class="precio"></div>`;
-    b.onclick = ()=>comprarModulo(m);
-    cm.appendChild(b);
-    ref[m.id] = {caja:b, glifo:b.querySelector('.glifo'), det:b.querySelector('.detalle'),
-                 cant:b.querySelector('.cant'), pre:b.querySelector('.precio'),
-                 nomTasa:b.querySelector('.nom-tasa')};
-  });
-}
-
-function pintarMejoras(){
-  const cu = $('mejoras'); cu.innerHTML='';
-  const visibles = mejorasVisibles();
-  if(visibles.length === 0){
-    cu.innerHTML = '<p class="vacio">No hay mejoras disponibles ahora mismo. Consigue más módulos para desbloquearlas.</p>';
-    return;
-  }
-  visibles.forEach(u=>{
-    const b = document.createElement('button');
-    b.className='ficha mejora';
-    b.innerHTML = `<div class="nombre">${u.nombre}</div>
-      <div class="detalle">${u.nota}</div>
-      <div class="precio">${fmt(u.coste)}</div>`;
-    b.disabled = s.j < u.coste;
-    if(s.j >= u.coste) b.classList.add('asequible');
-    b.onclick = ()=>{
-      if(s.j < u.coste) return;
-      s.j -= u.coste; s.mejoras.push(u.id);
-      pintarMejoras(); guardar();
-    };
-    cu.appendChild(b);
-  });
-}
-
-let modoCompra = 1; // 1, 10, 100 o 'max'
-document.querySelectorAll('#selCompra .sel').forEach(btn=>{
-  btn.onclick = ()=>{
-    const v = btn.dataset.n;
-    modoCompra = (v === 'max') ? 'max' : parseInt(v,10);
-    document.querySelectorAll('#selCompra .sel').forEach(b=>b.classList.toggle('activo', b===btn));
-  };
-});
-
-function comprarModulo(m){
-  const k = (modoCompra === 'max') ? maxAsequible(m) : modoCompra;
-  if(k < 1) return;
-  const total = costeVarios(m, k);
-  if(s.j < total) return;           // en modos fijos, exige poder pagar todo el lote
-  s.j -= total; s.mod[m.id] += k;
-  pintarMejoras(); guardar();
-}
-
-/* color del glifo según cuántas unidades de ESE módulo tengas */
-const NIVELES = [
-  {min:200, col:'#FF5E3A'},  // ardiendo
-  {min:100, col:'#FF7A34'},  // naranja intenso
-  {min:50,  col:'#F0A22E'},  // naranja
-  {min:25,  col:'#B9D14A'},  // lima
-  {min:10,  col:'#4FD0A6'},  // turquesa
-  {min:0,   col:'#4FC3D9'}   // frío
-];
-function colorNivel(n){
-  for(const nv of NIVELES){ if(n >= nv.min) return nv.col; }
-  return '#4FC3D9';
-}
-
-/* ============ TOQUE EN EL NÚCLEO ============ */
-$('nucleo').addEventListener('pointerdown', e=>{
-  const g = porToque() + (tieneMejora('sismografo') ? 0.05 * porSegundo() : 0);
-  s.j += g; s.totalCiclo += g; s.totalVida += g; s.toques++; s.toquesVida++;
-  const chispa = document.createElement('div');
-  chispa.className='chispa'; chispa.textContent='+'+fmt(g);
-  const caja = $('nucleo').getBoundingClientRect();
-  chispa.style.left = (e.clientX - caja.left - 12)+'px';
-  chispa.style.top  = (e.clientY - caja.top  - 14)+'px';
-  $('nucleo').appendChild(chispa);
-  setTimeout(()=>chispa.remove(), 700);
-  pintarMejoras();
-});
-
-/* ============ RECALIBRAR (prestigio) ============ */
-$('recal').onclick = ()=>{
-  const gana = isotoposAlRecalibrar();
-  if(gana < 1) return;
-  if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (producción ×${fmt(Math.pow(1.05,gana))} para siempre).\n\n¿Seguimos?`)) return;
-  mostrarCierre(gana);
-};
-
-// entrada de cierre (no va por profundidad): se lee antes de reiniciar
-function mostrarCierre(gana){
-  $('cierreCab').textContent = 'CIERRE DE POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0');
-  $('cierreTxt').textContent = 'El pozo no ha colapsado. Se ha cerrado.\nRecomiendo emplazamiento nuevo a 400 m del anterior.';
-  $('cierre').classList.add('on');
-  $('cierreOk').onclick = ()=>{ $('cierre').classList.remove('on'); hacerRecalibrado(gana); };
-}
-
-function hacerRecalibrado(gana){
-  const iso = s.isotopos + gana;
-  const vida = {
-    totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
-    toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1,
-    registro: s.registro, registroLeidos: s.registroLeidos,  // el registro NO se pierde
-    logros: s.logros                                          // los hitos tampoco
-  };
-  s = nuevaPartida(); s.isotopos = iso; Object.assign(s, vida);
-  pintarMejoras(); guardar();
-}
-
-$('borrar').onclick = ()=>{
-  if(!confirm('Se borra todo, incluidos los isótopos. ¿Seguro?')) return;
-  s = nuevaPartida(); pintarMejoras(); guardar();
-};
-
-/* ============ ESTADÍSTICAS ============ */
-function renderStats(){
-  const totalModulos = MODULOS.reduce((t,m)=>t+s.mod[m.id], 0);
-  const filas = [
-    ['Tiempo jugado',       fmtTiempo(s.tiempoJuego)],
-    ['Julios de por vida',  fmt(s.totalVida)],
-    ['Mejor producción',    fmt(s.mejorTasa)+' J/s'],
-    ['Producción actual',   fmt(porSegundo())+' J/s'],
-    ['Toques de por vida',  fmt(s.toquesVida)],
-    ['Módulos instalados',  fmt(totalModulos)],
-    ['Isótopos',            s.isotopos],
-    ['Recalibraciones',     s.recalibraciones||0]
-  ];
-  $('statsPanel').innerHTML = filas.map(f=>
-    `<div class="stat-fila"><span class="etq">${f[0]}</span><span class="val">${f[1]}</span></div>`
-  ).join('');
-}
-/* la pestaña de estadísticas llama a renderStats() al abrirse (ver navegación) */
-
-/* ============ REGISTRO DE PERFORACIÓN ============ */
-function comprobarRegistro(){
-  if(typeof REGISTRO === 'undefined') return;
-  const prof = profundidad();
-  const pozoActual = (s.recalibraciones||0)+1;
-  let nuevas = false;
-  REGISTRO.forEach(e=>{
-    if(s.registro.includes(e.id)) return;
-    if(prof >= e.m && (!e.pozo || pozoActual >= e.pozo)){ s.registro.push(e.id); nuevas = true; }
-  });
-  if(nuevas){
-    if(pestanaActiva === 'registro'){ marcarLeidas(); pintarRegistro(); }
-    else actualizarBadge();
-  }
-}
-function actualizarBadge(){
-  const noLeidas = s.registro.filter(id=>!s.registroLeidos.includes(id)).length;
-  const b = $('regBadge');
-  if(noLeidas > 0){ b.textContent = noLeidas > 9 ? '9+' : noLeidas; b.classList.add('on'); }
-  else b.classList.remove('on');
-}
-function marcarLeidas(){ s.registroLeidos = [...s.registro]; actualizarBadge(); }
-function pintarRegistro(){
-  const cont = $('registroLista'); cont.innerHTML = '';
-  if(s.registro.length === 0){
-    cont.innerHTML = '<p class="vacio">Sin entradas. El registro se completa al perforar más hondo.</p>';
-    return;
-  }
-  [...s.registro].reverse().forEach(id=>{   // más reciente primero
-    const e = REGISTRO.find(x=>x.id === id);
-    if(!e) return;
-    const div = document.createElement('div');
-    div.className = 'reg-entrada' + (e.final ? ' final' : '');
-    div.innerHTML = `<div class="reg-cab">REG-${e.id} · ${fmtMetros(e.m)} m</div><div class="reg-txt"></div>`;
-    div.querySelector('.reg-txt').textContent = e.txt;
-    cont.appendChild(div);
-  });
-}
-
-/* ============ HITOS ============ */
-const totalModulos = () => MODULOS.reduce((t,m)=>t+s.mod[m.id], 0);
-const LOGROS = [
-  {id:'arranque',   nombre:'ARRANQUE',                 desc:'Instala el primer módulo.',          cond:()=>totalModulos()>=1},
-  {id:'mejora1',    nombre:'PRIMERA CALIBRACIÓN',      desc:'Compra una mejora.',                 cond:()=>s.mejoras.length>=1},
-  {id:'km1',        nombre:'PRIMER KILÓMETRO',         desc:'Alcanza 1.000 m.',                   cond:()=>profundidad()>=1000},
-  {id:'toques100',  nombre:'EXTRACCIÓN MANUAL',        desc:'100 extracciones manuales.',         cond:()=>s.toquesVida>=100},
-  {id:'cierre1',    nombre:'PRIMER CIERRE',            desc:'Cierra un pozo y abre otro.',        cond:()=>s.recalibraciones>=1},
-  {id:'muestra1',   nombre:'PRIMERA MUESTRA',          desc:'Sube 1 isótopo a superficie.',       cond:()=>s.isotopos>=1},
-  {id:'tasa1k',     nombre:'1 kJ/s',                   desc:'Producción máxima de 1.000 J/s.',    cond:()=>s.mejorTasa>=1e3},
-  {id:'kola',       nombre:'RÉCORD DE KOLA',           desc:'Alcanza 12.262 m.',                  cond:()=>profundidad()>=12262},
-  {id:'cien',       nombre:'CIEN SONDAS',              desc:'Instala 100 sondas térmicas.',       cond:()=>s.mod.sonda>=100},
-  {id:'toques1k',   nombre:'PERCUSIÓN CONSTANTE',      desc:'1.000 extracciones manuales.',       cond:()=>s.toquesVida>=1000},
-  {id:'moho',       nombre:'DISCONTINUIDAD DE MOHO',   desc:'Atraviesa la corteza (35.000 m).',   cond:()=>profundidad()>=35000},
-  {id:'tasa1M',     nombre:'1 MJ/s',                   desc:'Producción máxima de 1 millón J/s.', cond:()=>s.mejorTasa>=1e6},
-  {id:'catalogo',   nombre:'CATÁLOGO COMPLETO',        desc:'Ten al menos uno de cada módulo.',   cond:()=>MODULOS.every(m=>s.mod[m.id]>=1)},
-  {id:'pozo5',      nombre:'QUINTO EMPLAZAMIENTO',     desc:'Llega al pozo 5.',                   cond:()=>s.recalibraciones>=4},
-  {id:'masiva',     nombre:'INSTALACIÓN MASIVA',       desc:'500 módulos instalados.',            cond:()=>totalModulos()>=500},
-  {id:'manto',      nombre:'MANTO INFERIOR',           desc:'Alcanza 660.000 m.',                 cond:()=>profundidad()>=660000},
-  {id:'tasa1G',     nombre:'1 GJ/s',                   desc:'Producción máxima de 1.000 M J/s.',  cond:()=>s.mejorTasa>=1e9},
-  {id:'muestras100',nombre:'CIEN MUESTRAS',            desc:'Acumula 100 isótopos.',              cond:()=>s.isotopos>=100},
-  {id:'gutenberg',  nombre:'NÚCLEO EXTERNO',           desc:'Alcanza 2.890.000 m.',               cond:()=>profundidad()>=2890000},
-  {id:'pozo10',     nombre:'DÉCIMO EMPLAZAMIENTO',     desc:'Llega al pozo 10.',                  cond:()=>s.recalibraciones>=9},
-  {id:'centro',     nombre:'CENTRO GEOMÉTRICO',        desc:'Alcanza 6.371.000 m.',               cond:()=>profundidad()>=6371000}
-];
-
-function comprobarLogros(){
-  const nuevos = [];
-  LOGROS.forEach(l=>{
-    if(s.logros.includes(l.id)) return;
-    if(l.cond()){ s.logros.push(l.id); nuevos.push(l); }
-  });
-  if(nuevos.length){
-    mostrarHitoToast(nuevos);
-    if(pestanaActiva === 'stats') renderHitos();
-  }
-}
-function mostrarHitoToast(nuevos){
-  const t = $('hitoToast');
-  t.textContent = 'HITO · ' + nuevos[0].nombre + (nuevos.length>1 ? '  (+'+(nuevos.length-1)+')' : '');
-  t.classList.add('on');
-  clearTimeout(t._t);
-  t._t = setTimeout(()=>t.classList.remove('on'), 3500);
-}
-function renderHitos(){
-  const total = LOGROS.length, hechos = s.logros.length;
-  $('hitosResumen').textContent = hechos+'/'+total+' · +'+(hechos*2)+'%';
-  const cont = $('hitosLista'); cont.innerHTML = '';
-  LOGROS.forEach(l=>{
-    const hecho = s.logros.includes(l.id);
-    const div = document.createElement('div');
-    div.className = 'hito' + (hecho ? ' logrado' : '');
-    div.innerHTML = `<div class="hito-nom">${l.nombre}</div><div class="hito-desc">${l.desc}</div>`;
-    cont.appendChild(div);
-  });
-}
-
-/* ============ EXPORTAR / IMPORTAR PARTIDA ============
-   Sincronización manual entre dispositivos mediante un código de texto.
-   No sale nada a ningún servidor: el código lo mueves tú (copiar/pegar). */
-function codificar(str){ return btoa(unescape(encodeURIComponent(str))); }
-function decodificar(code){ return decodeURIComponent(escape(atob(code))); }
-
-$('btnExportar').onclick = ()=>{
-  guardar();
-  const code = 'NUCLEO:' + codificar(JSON.stringify(s));
-  const area = $('datosArea');
-  area.style.display = 'block';
-  area.value = code;
-  $('btnCargar').style.display = 'none';
-  area.focus(); area.select();
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(code)
-      .then(()=> $('datosMsg').textContent = '✓ Código copiado. Ábrelo en el otro dispositivo, pulsa "Importar" y pégalo.')
-      .catch(()=> $('datosMsg').textContent = 'Copia a mano el código de arriba y pégalo en el otro dispositivo.');
-  } else {
-    $('datosMsg').textContent = 'Copia a mano el código de arriba y pégalo en el otro dispositivo.';
-  }
-};
-
-$('btnImportar').onclick = ()=>{
-  const area = $('datosArea');
-  area.style.display = 'block';
-  area.value = '';
-  $('btnCargar').style.display = 'block';
-  area.focus();
-  $('datosMsg').textContent = 'Pega aquí el código del otro dispositivo y pulsa "Cargar".';
-};
-
-$('btnCargar').onclick = ()=>{
-  let code = $('datosArea').value.trim();
-  if(!code){ $('datosMsg').textContent = 'No hay ningún código pegado.'; return; }
-  if(code.startsWith('NUCLEO:')) code = code.slice(7);
-  let datos;
-  try{ datos = JSON.parse(decodificar(code)); }
-  catch(e){ $('datosMsg').textContent = '✗ El código no es válido.'; return; }
-  if(!datos || typeof datos.j !== 'number' || typeof datos.mod !== 'object'){
-    $('datosMsg').textContent = '✗ Ese código no parece una partida de Núcleo.'; return;
-  }
-  if(!confirm('Esto reemplazará la partida de ESTE dispositivo por la del código. ¿Seguro?')) return;
-  s = Object.assign(nuevaPartida(), datos);
-  MODULOS.forEach(m=>{ if(typeof s.mod[m.id] !== 'number') s.mod[m.id]=0; });
-  guardar();
-  crearFichas(); pintarMejoras();
-  $('datosArea').style.display = 'none';
-  $('btnCargar').style.display = 'none';
-  $('datosMsg').textContent = '✓ Partida importada correctamente.';
-};
-
-/* ============ COLOR SEGÚN CALOR ============ */
-function mezclar(a,b,t){
-  const h = x=>[1,3,5].map(i=>parseInt(x.substr(i,2),16));
-  const [r1,g1,b1]=h(a), [r2,g2,b2]=h(b);
-  const c = (u,v)=>Math.round(u+(v-u)*t).toString(16).padStart(2,'0');
-  return '#'+c(r1,r2)+c(g1,g2)+c(b1,b2);
-}
-function tonoActual(jps){
-  const t = Math.max(0, Math.min(1, Math.log10(jps+1)/6));
-  const col = t < .5 ? mezclar('#4FC3D9','#F0A22E', t*2)
-                     : mezclar('#F0A22E','#FF5E3A',(t-.5)*2);
-  document.documentElement.style.setProperty('--tono', col);
-  document.documentElement.style.setProperty('--pulso', (3.2 - t*2.2).toFixed(2)+'s');
-}
-
-/* ============ GRÁFICA DE LOS ÚLTIMOS 60 s ============ */
-const historial = new Array(60).fill(0);
-function pintarGrafica(){
-  const max = Math.max(...historial, 1);
-  const pts = historial.map((v,i)=>{
-    const x = i/59*300;
-    const y = 43 - (v/max)*40;
-    return (i?'L':'M') + x.toFixed(1) + ' ' + y.toFixed(1);
-  });
-  $('linea').setAttribute('d', pts.join(' '));
-}
-
-/* ============ BUCLE PRINCIPAL ============ */
-let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, senalDurActual = null, rafId = null;
-
-function bucle(ahora){
-  const dt = Math.min((ahora - ultimo)/1000, 1);
-  ultimo = ahora;
-
-  const jps = porSegundo();
-  const ganado = jps * dt;
-  s.j += ganado; s.totalCiclo += ganado; s.totalVida += ganado;
-  s.tiempoJuego += dt;
-  if(jps > s.mejorTasa) s.mejorTasa = jps;
-
-  acumTic += dt;
-  if(acumTic >= 1){
-    acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
-    if(pestanaActiva === 'stats') renderStats();
-    comprobarRegistro();
-    comprobarLogros();
-    const dur = Math.max(2.2, 6 - Math.log10(profundidad()+10)*0.5).toFixed(1);
-    if(dur !== senalDurActual){ senalDurActual = dur; document.documentElement.style.setProperty('--senal-dur', dur+'s'); }
-  }
-
-  acumGuardado += dt;
-  if(acumGuardado >= 5){ acumGuardado = 0; guardar(); }
-
-  dibujar(jps);
-  rafId = requestAnimationFrame(bucle);
-}
-
-function dibujar(jps){
-  $('julios').textContent = fmt(s.j);
-  $('tasa').textContent = fmt(jps)+' J/s';
-  tonoActual(jps);
-
-  // --- lore: profundidad del pozo ---
-  const profM = profundidad();
-  $('prof').textContent = fmtMetros(profM) + ' m';
-  $('estrato').textContent = estratoDe(profM);
-  $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
-
-  // anillo: avance hacia el siguiente isótopo
-  const actual = isotoposAlRecalibrar();
-  const desde = Math.pow(actual,2)*UMBRAL;
-  const hasta = Math.pow(actual+1,2)*UMBRAL;
-  const p = Math.max(0, Math.min(1, (s.totalCiclo - desde)/(hasta - desde)));
-  document.querySelector('#anillo .carga').setAttribute('stroke-dashoffset', 553*(1-p));
-
-  const falta = (hasta - s.totalCiclo)/Math.max(jps, 0.0001);
-  $('restante').textContent = actual >= 1
-      ? 'siguiente isótopo en ' + (jps>0 ? fmtTiempo(falta) : '—')
-      : 'primer isótopo al ' + Math.floor(p*100) + '%';
-
-  let totalMod = 0;
-  MODULOS.forEach(m=>{
-    const r = ref[m.id], n = s.mod[m.id];
-    totalMod += n;
-    let k, coste, puedo;
-    if(modoCompra === 'max'){
-      k = maxAsequible(m);
-      coste = costeVarios(m, Math.max(k,1));
-      puedo = k >= 1;
-    }else{
-      k = modoCompra;
-      coste = costeVarios(m, k);
-      puedo = s.j >= coste;
-    }
-    r.cant.textContent = n || '';
-    r.pre.textContent  = (modoCompra === 'max' && k >= 1) ? (k + '× ' + fmt(coste)) : fmt(coste);
-    r.det.textContent  = n ? fmt(produccionDe(m))+' J/s' : '+'+fmt(m.prod*multiplicadorDe(m.id)*bonusGlobal())+' J/s';
-    r.nomTasa.textContent = n ? fmt(m.prod*multiplicadorDe(m.id)*bonusGlobal())+' J/s' : '';
-    r.caja.classList.toggle('asequible', puedo);
-    r.caja.classList.toggle('activo', n>0);
-    r.glifo.style.color = n>0 ? colorNivel(n) : '';
-    r.caja.disabled = !puedo;
-  });
-  $('totalMod').textContent = totalMod ? totalMod+' instalados' : '';
-
-  const gana = isotoposAlRecalibrar();
-  const boton = $('recal');
-  boton.style.display = (gana >= 1) ? 'block' : 'none';
-  if(gana >= 1) boton.innerHTML =
-    `Recalibrar por ${gana} isótopo${gana>1?'s':''}<small>reinicia el ciclo · ×${fmt(Math.pow(1.05,gana))} permanente</small>`;
-
-  const multIso = Math.pow(tieneMejora('enriq')?1.07:1.05, s.isotopos);
-  $('isotopos').textContent = s.isotopos
-    ? s.isotopos+' isótopos · ×'+fmt(multIso) : 'sin isótopos';
-
-  // las mejoras solo cambian de estado, no hace falta repintarlas cada fotograma
-  const vis = mejorasVisibles();
-  document.querySelectorAll('#mejoras .ficha').forEach((b,i)=>{
-    const u = vis[i];
-    if(!u) return;
-    const puedo = s.j >= u.coste;
-    b.disabled = !puedo; b.classList.toggle('asequible', puedo);
-  });
-}
-
-/* ============ GUARDAR Y CARGAR ============ */
-function guardar(){
-  s.t = Date.now();
-  Guardado.escribir(CLAVE, JSON.stringify(s));
-}
-
-// Aplica la producción del tiempo que la app estuvo cerrada o en segundo plano.
-// "desde" = marca de tiempo en que se guardó al salir. Tope: 8 h (24 h con batería).
-function aplicarAusencia(desde){
-  const tope = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
-  const fuera = Math.min((Date.now() - (desde || Date.now()))/1000, tope);
-  if(fuera > 60){
-    const extra = porSegundo() * fuera;
-    if(extra > 0){
-      s.j += extra; s.totalCiclo += extra; s.totalVida += extra;
-      const aviso = $('offline');
-      aviso.innerHTML = `Mientras no estabas (${fmtTiempo(fuera)}) el reactor siguió trabajando: <b>+${fmt(extra)} J</b>`;
-      aviso.style.display = 'block';
-      aviso.onclick = ()=>aviso.style.display='none';
-    }
-  }
-}
-
-async function cargar(){
-  const bruto = await Guardado.leer(CLAVE);
-  if(bruto){
-    try{
-      const d = JSON.parse(bruto);
-      s = Object.assign(nuevaPartida(), d);
-      MODULOS.forEach(m=>{ if(typeof s.mod[m.id] !== 'number') s.mod[m.id]=0; });
-      if(typeof d.totalVida !== 'number') s.totalVida = s.totalCiclo;
-      if(typeof d.toquesVida !== 'number') s.toquesVida = s.toques;
-
-      aplicarAusencia(d.t);
-    }catch(e){ /* partida corrupta: empezamos de cero */ }
-  }
-  crearFichas(); pintarMejoras();
-  comprobarRegistro(); actualizarBadge(); comprobarLogros();
-  rafId = requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
-}
-// reinicia el motor del juego (por si iOS lo detuvo en segundo plano)
-function reiniciarMotor(){
-  if(rafId) cancelAnimationFrame(rafId);
-  ultimo = performance.now();
-  rafId = requestAnimationFrame(bucle);
-}
-
-// iOS congela la pestaña sin avisar: guardamos al salir y acumulamos al volver
-document.addEventListener('visibilitychange', ()=>{
-  if(document.hidden){
-    guardar();
-  }else{
-    // volvió de segundo plano: acumula lo producido mientras estuvo fuera
-    aplicarAusencia(s.t);
-    comprobarRegistro(); comprobarLogros();
-    guardar();
-    reiniciarMotor();   // por si iOS detuvo el bucle en segundo plano
-  }
-});
-window.addEventListener('pagehide', guardar);
-
-/* ============ NAVEGACIÓN ENTRE PESTAÑAS ============ */
-let pestanaActiva = 'modulos';
-const _paginas = document.querySelectorAll('.pagina');
-const _navTabs = document.querySelectorAll('#navbar .nav-tab');
-function mostrarPagina(id){
-  pestanaActiva = id;
-  _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
-  _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
-  if(id === 'mejoras')  pintarMejoras();
-  if(id === 'stats'){   renderStats(); renderHitos(); }
-  if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
-  window.scrollTo(0, 0);
-}
-_navTabs.forEach(t => t.onclick = ()=> mostrarPagina(t.dataset.pag));
-
-/* onda de la señal de fondo: seno repetible de 80 px que se desliza en bucle */
-(function pintarSenalFondo(){
-  const w=80, h=24, amp=7, mid=12;
-  let d='M0 '+mid;
-  for(let x=0; x<=w; x+=2){ d += ' L'+x+' '+(mid - Math.sin(x/w*Math.PI*2)*amp).toFixed(2); }
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><path d='${d}' fill='none' stroke='#4FC3D9' stroke-width='1.2'/></svg>`;
-  $('senal').style.backgroundImage = 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
-})();
-
-cargar();
-
-/* ============ SISTEMA DE ACTUALIZACIÓN ============
-   VERSION: súbela en 1 cada vez que publiques cambios,
-   y pon el mismo número en el archivo version.json.
-   Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 21;
-$('version').textContent = 'v' + VERSION;
-
-// Registra el service worker (copia offline). Cuando confirme que
-// ha refrescado la copia, recargamos para mostrar lo nuevo.
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  });
-  navigator.serviceWorker.addEventListener('message', e=>{
-    if(e.data === 'actualizado') location.reload();
-  });
-}
-
-// Comprueba en silencio si hay una versión más nueva publicada.
-function comprobarActualizacion(){
-  fetch('./version.json', {cache:'no-store'})
-    .then(r=>r.json())
-    .then(d=>{
-      if(d && d.v > VERSION){
-        const b = $('actualiza');
-        b.textContent = '✨ Nueva versión disponible · toca para actualizar';
-        b.style.display = 'block';
-        b.onclick = ()=>{
-          b.textContent = 'Actualizando…';
-          const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
-          if(sw){
-            sw.postMessage('actualizar');
-            setTimeout(()=>location.reload(), 2000); // red de seguridad
-          }else{
-            location.reload();
-          }
-        };
-      }
-    })
-    .catch(()=>{ /* sin conexión: no pasa nada */ });
-}
-comprobarActualizacion();
-// Vuelve a comprobar cada vez que regresas a la app.
-document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) comprobarActualizacion(); });
-</script>
+<script src="./scripts/app.js"></script>

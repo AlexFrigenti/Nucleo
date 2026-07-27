@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ASSETS = [
-  'index.html', 'registro.js', 'sw.js',
+  'index.html', 'registro.js', 'styles/app.css', 'scripts/app.js', 'sw.js',
   'manifest.webmanifest', 'version.json',
   'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'
 ];
@@ -13,6 +13,8 @@ const ASSETS = [
 const OUT = 'www';
 fs.mkdirSync(OUT, { recursive: true });
 for (const f of ASSETS) {
-  fs.copyFileSync(f, path.join(OUT, f));
+  const destino = path.join(OUT, f);
+  fs.mkdirSync(path.dirname(destino), { recursive: true });
+  fs.copyFileSync(f, destino);
 }
 console.log('build.js: copiados ' + ASSETS.length + ' archivos a ' + OUT + '/');

@@ -77,6 +77,6 @@ npx cap sync ios   # sincroniza con el proyecto iOS
 - Sin frameworks ni dependencias en el juego: HTML/CSS/JS puro.
 - La simulación usa `requestAnimationFrame`; el render visual se limita a 10 fps,
   se pausa en segundo plano y deja de animar el radar fuera de Sondeo.
-- **Prestigio** ("recalibrar"): cierra el pozo y abre otro; los isótopos (muestras) se conservan y multiplican la producción (×1,05 por muestra).
+- **Protocolo Δ** ("recalibrar"): cierra el pozo y abre otro; conserva la bonificación base de ×1,05 por isótopo y transforma las muestras en investigación permanente. Recuperar un mismo isótopo dos veces genera una resonancia específica; integrar dos o más familias en el mismo cierre añade una matriz mixta de +2 % a la producción global. La vista previa detalla el resultado antes de ejecutar el cierre.
 - **Profundidad** = √(julios producidos en el pozo actual), en metros. 1 muestra = 1.000 m. Referencia real: récord de Kola, 12.262 m.
-- El **Registro** y los **Hitos** se guardan en la partida y no se pierden al recalibrar.
+- El **Registro** y los **Hitos** se guardan en la partida y no se pierden al recalibrar. El Registro reúne el catálogo de firmas con sus efectos y resonancias, un historial de pozos cerrados (profundidad, pico de producción, isótopos y muestras integradas) y una bitácora de anomalías, objetivos y recalibraciones.

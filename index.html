@@ -25,6 +25,9 @@
   --pulso:3s;
   --mono:ui-monospace,"SF Mono",Menlo,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --grid:rgba(130,165,195,.05);
+  --grid2:rgba(130,165,195,.14);
+  --senal-dur:6s;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--fondo);color:var(--texto);font-family:var(--sans);overscroll-behavior:none}
@@ -32,6 +35,9 @@ body{
   padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 82px);
   max-width:540px;margin:0 auto;
   -webkit-user-select:none;user-select:none;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:38px 38px;background-position:center top;
 }
 .eyebrow{
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;
@@ -66,7 +72,7 @@ body{
   transition:stroke-dashoffset .3s linear,stroke .8s linear;
 }
 #halo{
-  position:absolute;top:16px;width:150px;height:150px;border-radius:50%;
+  position:absolute;top:31px;width:150px;height:150px;border-radius:50%;
   background:radial-gradient(circle,var(--tono) 0%,transparent 68%);
   opacity:.16;animation:latido var(--pulso) ease-in-out infinite;pointer-events:none;
 }
@@ -82,15 +88,40 @@ body{
   font-variant-numeric:tabular-nums;transition:color .8s linear}
 #restante{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);margin-top:2px}
 
-/* --- gráfica --- */
-#grafica{width:100%;height:44px;display:block;margin:12px 0 22px;overflow:visible}
+/* --- señal de fondo (el 'periodo') --- */
+#senal{
+  position:relative;height:22px;margin:4px 0 6px;overflow:hidden;opacity:.55;
+  background-repeat:repeat-x;background-position:0 center;
+  animation:desliza var(--senal-dur) linear infinite;
+}
+#senal .senal-lbl{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--tenue);
+  background:var(--fondo);padding-right:8px;
+}
+@keyframes desliza{to{background-position:-80px center}}
+
+/* --- indicador de estrato --- */
+#estrato{
+  text-align:center;font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.2em;color:var(--tenue);margin:4px 0 2px;
+}
+
+/* --- telemetría / gráfica osciloscopio --- */
+#telemetria{margin:10px 0 22px}
+.tel-cab{display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--tenue);margin-bottom:5px}
+#grafica{width:100%;height:54px;display:block;overflow:visible;
+  border:1px solid var(--linea);border-radius:6px;background:rgba(0,0,0,.18)}
 #grafica path{fill:none;stroke:var(--tono);stroke-width:1.5;stroke-linejoin:round;
   transition:stroke .8s linear}
 #grafica .base{stroke:var(--linea);stroke-width:1}
+#grafica .rejilla line{stroke:var(--grid2);stroke-width:1;vector-effect:non-scaling-stroke}
 
 /* --- secciones --- */
 h2{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--tenue);
-  font-weight:600;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+  font-weight:600;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--linea);padding-bottom:8px}
 h2 span{font-family:var(--mono);letter-spacing:0;text-transform:none;font-size:11px}
 section{margin-bottom:26px}
 
@@ -281,7 +312,9 @@ section{margin-bottom:26px}
 
 <!-- ===== CABECERA: siempre visible en todas las pestañas ===== -->
 <header id="cabecera">
-  <p class="eyebrow" id="cabPozo" style="text-align:center">POZO 01 · 0 m</p>
+  <p class="eyebrow" id="cabPozo" style="text-align:center">POZO 01 · SONDEO PROFUNDO</p>
+
+  <div id="senal"><span class="senal-lbl">SEÑAL DE FONDO</span></div>
 
   <div id="nucleo">
     <div id="halo"></div>
@@ -298,10 +331,23 @@ section{margin-bottom:26px}
     </div>
   </div>
 
-  <svg id="grafica" viewBox="0 0 300 44" preserveAspectRatio="none">
-    <path class="base" d="M0 43 H300"/>
-    <path id="linea"/>
-  </svg>
+  <div id="estrato"></div>
+
+  <div id="telemetria">
+    <div class="tel-cab"><span>PRODUCCIÓN</span><span>ÚLTIMOS 60 s</span></div>
+    <svg id="grafica" viewBox="0 0 300 44" preserveAspectRatio="none">
+      <g class="rejilla">
+        <line x1="0" y1="11" x2="300" y2="11"/>
+        <line x1="0" y1="22" x2="300" y2="22"/>
+        <line x1="0" y1="33" x2="300" y2="33"/>
+        <line x1="75" y1="0" x2="75" y2="44"/>
+        <line x1="150" y1="0" x2="150" y2="44"/>
+        <line x1="225" y1="0" x2="225" y2="44"/>
+      </g>
+      <path class="base" d="M0 43 H300"/>
+      <path id="linea"/>
+    </svg>
+  </div>
 
   <button id="recal"></button>
   <div id="isotopos"></div>
@@ -412,8 +458,8 @@ const MODULOS = [
   {id:'bucle',  nombre:'Bucle de vapor', base:20000,   prod:47},
   {id:'pozo',   nombre:'Perforadora profunda', base:330000,  prod:260},
   {id:'manto',  nombre:'Taladro de diamante',  base:5100000, prod:1400},
-  {id:'externo',nombre:'Núcleo externo', base:85000000,    prod:7800},
-  {id:'interno',nombre:'Núcleo interno', base:1400000000,  prod:44000},
+  {id:'externo',nombre:'Perforadora sónica',  base:85000000,    prod:7800},
+  {id:'interno',nombre:'Cañón de partículas', base:1400000000,  prod:44000},
   {id:'plasma', nombre:'Forja de plasma',base:24000000000, prod:255000}
 ];
 const CRECIMIENTO = 1.15;
@@ -428,8 +474,8 @@ const MEJORAS = [
   {id:'m7', nombre:'Perforación láser',    coste:8000000,  obj:'pozo',    mult:2,   req:s=>s.mod.pozo>=10,    nota:'Perforadoras ×2'},
   {id:'m8', nombre:'Refrigeración forzada',coste:40000000,    obj:'manto',   mult:2,   req:s=>s.mod.manto>=10,   nota:'Taladros ×2'},
   {id:'m9', nombre:'Resonancia sísmica',   coste:150000000,   obj:'global',  mult:1.5, req:s=>s.mod.externo>=5,  nota:'Producción total x1,5'},
-  {id:'m10',nombre:'Contención toroidal',  coste:900000000,   obj:'externo', mult:2,   req:s=>s.mod.externo>=10, nota:'Núcleos externos x2'},
-  {id:'m11',nombre:'Ignición por láser',   coste:12000000000, obj:'interno', mult:2,   req:s=>s.mod.interno>=10, nota:'Núcleos internos x2'},
+  {id:'m10',nombre:'Amplificador sónico',  coste:900000000,   obj:'externo', mult:2,   req:s=>s.mod.externo>=10, nota:'Perforadoras sónicas ×2'},
+  {id:'m11',nombre:'Acelerador lineal',    coste:12000000000, obj:'interno', mult:2,   req:s=>s.mod.interno>=10, nota:'Cañones de partículas ×2'},
   {id:'m12',nombre:'Campo de Higgs',       coste:100000000000,obj:'plasma',  mult:3,   req:s=>s.mod.plasma>=10,  nota:'Forjas de plasma x3'}
 ];
 
@@ -550,6 +596,17 @@ function fmtTiempo(seg){
 // profundidad del pozo (m) = raíz de los julios producidos este ciclo
 function profundidad(){ return Math.floor(Math.sqrt(Math.max(0, s.totalCiclo))); }
 function fmtMetros(n){ return Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+// estrato geológico según profundidad (fronteras reales, alineadas con el Registro)
+const ESTRATOS = [
+  {min:6371000, n:'CENTRO GEOMÉTRICO'},
+  {min:5150000, n:'NÚCLEO INTERNO'},
+  {min:2890000, n:'NÚCLEO EXTERNO'},
+  {min:660000,  n:'MANTO INFERIOR'},
+  {min:410000,  n:'ZONA DE TRANSICIÓN'},
+  {min:35000,   n:'MANTO SUPERIOR'},
+  {min:0,       n:'CORTEZA CONTINENTAL'}
+];
+function estratoDe(prof){ for(const e of ESTRATOS){ if(prof >= e.min) return e.n; } return 'CORTEZA CONTINENTAL'; }
 
 /* ============ CONSTRUCCIÓN DE LA INTERFAZ ============ */
 const $ = id => document.getElementById(id);
@@ -825,7 +882,7 @@ function pintarGrafica(){
 }
 
 /* ============ BUCLE PRINCIPAL ============ */
-let ultimo = performance.now(), acumTic = 0, acumGuardado = 0;
+let ultimo = performance.now(), acumTic = 0, acumGuardado = 0, senalDurActual = null;
 
 function bucle(ahora){
   const dt = Math.min((ahora - ultimo)/1000, 1);
@@ -842,6 +899,8 @@ function bucle(ahora){
     acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
     if(pestanaActiva === 'stats') renderStats();
     comprobarRegistro();
+    const dur = Math.max(2.2, 6 - Math.log10(profundidad()+10)*0.5).toFixed(1);
+    if(dur !== senalDurActual){ senalDurActual = dur; document.documentElement.style.setProperty('--senal-dur', dur+'s'); }
   }
 
   acumGuardado += dt;
@@ -857,7 +916,9 @@ function dibujar(jps){
   tonoActual(jps);
 
   // --- lore: profundidad del pozo ---
-  $('prof').textContent = fmtMetros(profundidad()) + ' m';
+  const profM = profundidad();
+  $('prof').textContent = fmtMetros(profM) + ' m';
+  $('estrato').textContent = estratoDe(profM);
   $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
 
   // anillo: avance hacia el siguiente isótopo
@@ -969,13 +1030,22 @@ function mostrarPagina(id){
 }
 _navTabs.forEach(t => t.onclick = ()=> mostrarPagina(t.dataset.pag));
 
+/* onda de la señal de fondo: seno repetible de 80 px que se desliza en bucle */
+(function pintarSenalFondo(){
+  const w=80, h=24, amp=7, mid=12;
+  let d='M0 '+mid;
+  for(let x=0; x<=w; x+=2){ d += ' L'+x+' '+(mid - Math.sin(x/w*Math.PI*2)*amp).toFixed(2); }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><path d='${d}' fill='none' stroke='#4FC3D9' stroke-width='1.2'/></svg>`;
+  $('senal').style.backgroundImage = 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+})();
+
 cargar();
 
 /* ============ SISTEMA DE ACTUALIZACIÓN ============
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 16;
+const VERSION = 17;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

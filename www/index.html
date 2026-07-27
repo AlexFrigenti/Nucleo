@@ -125,18 +125,27 @@
   </section>
 
   <section class="pagina oculta pagina-equipo" data-pag="equipo">
-    <div class="subseccion">
-      <h2>Módulos <span id="totalMod"></span></h2>
-      <div id="selCompra">
-      <button class="sel activo" data-n="1">×1</button>
-      <button class="sel" data-n="10">×10</button>
-      <button class="sel" data-n="100">×100</button>
-      <button class="sel" data-n="max">Máx</button>
+    <header class="panel-cab equipo-cab">
+      <div><p class="eyebrow">SECCIÓN 02 · EQUIPO DE SONDEO</p><h1>Configuración de producción</h1></div>
+      <span class="panel-estado"><i></i> EN LÍNEA</span>
+    </header>
+    <div class="equipo-resumen" aria-label="Resumen de equipo">
+      <div><span>MÓDULOS</span><strong id="totalMod">0</strong><small>INSTALADOS</small></div>
+      <div><span>CAPACIDAD</span><strong id="capacidadEquipo">0 J/s</strong><small>PRODUCCIÓN</small></div>
+      <div><span>MEJORAS</span><strong id="mejorasResumen">0</strong><small>APLICADAS</small></div>
     </div>
+    <div class="subseccion equipo-modulos">
+      <div class="subseccion-cab"><h2>Módulos instalables <span>TOCAR PARA DESPLEGAR</span></h2></div>
+      <div id="selCompra" aria-label="Cantidad de compra">
+        <button class="sel activo" data-n="1">×1</button>
+        <button class="sel" data-n="10">×10</button>
+        <button class="sel" data-n="100">×100</button>
+        <button class="sel" data-n="max">MÁX</button>
+      </div>
       <div id="modulos"></div>
     </div>
-    <div class="subseccion">
-      <h2>Mejoras</h2>
+    <div class="subseccion equipo-mejoras">
+      <div class="subseccion-cab"><h2>Mejoras de laboratorio <span id="mejorasDisponibles">EN ESPERA</span></h2></div>
       <div id="mejoras"></div>
     </div>
   </section>
@@ -146,11 +155,31 @@
     <div id="registroLista"></div>
   </section>
 
-  <section class="pagina oculta" data-pag="sistema">
-    <h2>Estadísticas</h2>
-    <div id="statsPanel"></div>
-    <h2 style="margin-top:24px">Hitos <span id="hitosResumen"></span></h2>
-    <div id="hitosLista"></div>
+  <section class="pagina oculta pagina-sistema" data-pag="sistema">
+    <header class="panel-cab sistema-cab">
+      <div><p class="eyebrow">SECCIÓN 04 · DIAGNÓSTICO</p><h1>Estado del pozo</h1></div>
+      <span class="panel-estado"><i></i> ESTABLE</span>
+    </header>
+    <section id="estadoSistema" class="estado-sistema-panel" aria-label="Salud del sistema">
+      <div class="salud-cab"><span>INTEGRIDAD OPERATIVA</span><strong id="estadoGeneral">NOMINAL</strong></div>
+      <div class="salud-grid">
+        <div class="salud-medida"><div><span>INTEGRIDAD</span><b id="saludIntegridad">100%</b></div><i><em id="barraIntegridad"></em></i><small id="saludIntegridadNota">REVESTIMIENTO ESTABLE</small></div>
+        <div class="salud-medida"><div><span>REFRIGERACIÓN</span><b id="saludRefrigeracion">100%</b></div><i><em id="barraRefrigeracion"></em></i><small id="saludRefrigeracionNota">CARGA TÉRMICA BAJA</small></div>
+        <div class="salud-medida"><div><span>ENERGÍA</span><b id="saludEnergia">0%</b></div><i><em id="barraEnergia"></em></i><small id="saludEnergiaNota">MÓDULOS EN ESPERA</small></div>
+      </div>
+    </section>
+    <section class="eventos-panel" aria-label="Eventos recientes">
+      <div class="subseccion-cab"><h2>Eventos recientes <span id="eventosEstado">CANAL DE OPERACIÓN</span></h2></div>
+      <div id="eventosRecientes"></div>
+    </section>
+    <section class="estadisticas-panel">
+      <div class="subseccion-cab"><h2>Telemetría acumulada</h2></div>
+      <div id="statsPanel"></div>
+    </section>
+    <section class="hitos-panel">
+      <div class="subseccion-cab"><h2>Hitos <span id="hitosResumen"></span></h2></div>
+      <div id="hitosLista"></div>
+    </section>
   </section>
 
   <section class="pagina oculta" data-pag="ajustes" id="secDatos">

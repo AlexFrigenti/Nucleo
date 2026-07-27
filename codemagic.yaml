@@ -1,0 +1,38 @@
+# ============================================================
+#  Núcleo · configuración de compilación para Codemagic
+# ------------------------------------------------------------
+#  Este flujo hace una compilación de PRUEBA sin firmar: sirve
+#  para comprobar que la app iOS compila en el Mac de Codemagic,
+#  sin necesitar todavía la cuenta de desarrollador de Apple.
+#
+#  Cuando tengas la cuenta (99 $/año), añadiremos aquí la firma
+#  de código y la publicación automática en App Store Connect.
+# ============================================================
+
+workflows:
+  ios-prueba:
+    name: Núcleo · compilación de prueba (sin firmar)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      node: 20
+      xcode: latest
+    scripts:
+      - name: Instalar dependencias (npm)
+        script: npm install
+      - name: Copiar la web a www/
+        script: npm run build
+      - name: Sincronizar Capacitor con iOS
+        script: npx cap sync ios
+      - name: Compilar la app para el simulador (sin firmar)
+        script: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+    artifacts:
+      - $HOME/Library/Developer/Xcode/DerivedData/**/*.app

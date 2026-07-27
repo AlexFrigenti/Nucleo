@@ -155,7 +155,9 @@ function actualizarMuestra(gana, profM){
   const muestra = MUESTRAS[s.isotopos % MUESTRAS.length];
   const lista = $('muestraIsotopo');
   const listaRecuperable = gana >= 1;
+  const estabaRecuperable = lista.classList.contains('recuperable');
   lista.classList.toggle('recuperable', listaRecuperable);
+  if(listaRecuperable && !estabaRecuperable) dispararMuestraDetectada();
   $('muestraEstado').textContent = listaRecuperable ? 'ISÓTOPO DETECTADO' : 'ANÁLISIS EN CURSO';
   $('muestraCodigo').textContent = muestra.codigo;
   $('muestraSimbolo').textContent = muestra.simbolo;
@@ -644,7 +646,11 @@ function dibujar(jps){
   // --- lore: profundidad del pozo ---
   const profM = profundidad();
   $('prof').textContent = fmtMetros(profM) + ' m';
-  $('estrato').textContent = estratoDe(profM);
+  const nombreEstrato = estratoDe(profM);
+  if($('estrato').textContent !== nombreEstrato){
+    $('estrato').textContent = nombreEstrato;
+    activarTransicionEstrato();
+  }
   $('radarProfundidad').textContent = fmtMetros(profM) + ' m';
   actualizarInstrumentos(profM, jps);
   $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
@@ -799,7 +805,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 24;
+const VERSION = 25;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que
@@ -839,3 +845,55 @@ function comprobarActualizacion(){
 comprobarActualizacion();
 // Vuelve a comprobar cada vez que regresas a la app.
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) comprobarActualizacion(); });
+
+
+/* ============ FASE 5 · MICROANIMACIONES ============ */
+function activarTransicionEstrato(){
+  const perfil = $('perfilGeologico');
+  perfil.classList.remove('estrato-cambia');
+  void perfil.offsetWidth;
+  perfil.classList.add('estrato-cambia');
+}
+
+function dispararMuestraDetectada(){
+  const muestra = $('muestraIsotopo');
+  muestra.classList.remove('muestra-detectada');
+  void muestra.offsetWidth;
+  muestra.classList.add('muestra-detectada');
+}
+
+(function activarMicrointeracciones(){
+  const nucleo = $('nucleo');
+
+  function reiniciarClase(elemento, clase){
+    elemento.classList.remove(clase);
+    void elemento.offsetWidth;
+    elemento.classList.add(clase);
+  }
+
+  function crearPulsoExtraccion(origen){
+    const pulso = document.createElement('i');
+    pulso.className = 'pulso-extraccion';
+    const rect = origen.getBoundingClientRect();
+    pulso.style.setProperty('--x', (18 + Math.random() * 64).toFixed(0) + '%');
+    pulso.style.setProperty('--y', (18 + Math.random() * 64).toFixed(0) + '%');
+    origen.appendChild(pulso);
+    pulso.addEventListener('animationend', ()=> pulso.remove(), {once:true});
+  }
+
+  nucleo.addEventListener('pointerdown', ()=>{
+    reiniciarClase(nucleo, 'extraccion-activa');
+    crearPulsoExtraccion(nucleo);
+  }, {passive:true});
+
+  document.addEventListener('click', evento=>{
+    const boton = evento.target.closest('#modulos .ficha, #mejoras .ficha, #recal, #cierreOk, #selCompra .sel, #navbar .nav-tab');
+    if(!boton || boton.disabled) return;
+    reiniciarClase(boton, 'confirmacion-accion');
+    if(boton.matches('#modulos .ficha, #mejoras .ficha, #recal')) crearPulsoExtraccion(boton);
+  });
+
+  document.addEventListener('visibilitychange', ()=>{
+    document.documentElement.classList.toggle('aplicacion-pausada', document.hidden);
+  });
+})();

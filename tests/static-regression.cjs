@@ -35,3 +35,12 @@ assert(html.includes('id="muestraIsotopo"'), 'Falta el panel de muestra isotópi
 assert(html.includes('id="muestraEstado"'), 'Falta el estado de la muestra');
 assert(app.includes('function actualizarMuestra'), 'Falta el renderizado de muestra isotópica');
 assert(app.includes('PROTOCOLO Δ-'), 'Falta el protocolo visual de recalibración');
+
+assert(html.includes('id="estadoSistema"'), 'Falta el panel de salud del sistema');
+assert(html.includes('id="eventosRecientes"'), 'Falta el feed de eventos recientes');
+assert(html.includes('id="capacidadEquipo"'), 'Falta el resumen operativo de Equipo');
+assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
+assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
+assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
+assert(app.includes('const VERSION = 24'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v6'"), 'La caché offline no se ha renovado');

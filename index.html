@@ -214,6 +214,7 @@ section{margin-bottom:26px}
   padding-bottom:env(safe-area-inset-bottom);
 }
 #navbar .nav-tab{
+  position:relative;
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
   padding:9px 0 8px;background:none;border:none;
   color:var(--tenue);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.02em;
@@ -221,6 +222,48 @@ section{margin-bottom:26px}
 #navbar .nav-tab .ic{width:22px;height:22px;display:block}
 #navbar .nav-tab.activo{color:var(--frio)}
 #navbar .nav-tab:active{background:rgba(255,255,255,.05)}
+#navbar .nav-tab .badge{
+  position:absolute;top:5px;left:calc(50% + 6px);
+  min-width:16px;height:16px;padding:0 4px;border-radius:8px;
+  background:var(--ardiendo);color:#fff;font-size:10px;font-weight:700;
+  line-height:16px;text-align:center;display:none;
+}
+#navbar .nav-tab .badge.on{display:block}
+
+/* --- registro de perforación --- */
+.reg-entrada{
+  border:1px solid var(--linea);background:var(--capa);border-radius:12px;
+  padding:12px 14px;margin-bottom:10px;
+}
+.reg-entrada .reg-cab{
+  font-family:var(--mono);font-size:11px;color:var(--frio);
+  letter-spacing:.06em;margin-bottom:7px;
+}
+.reg-entrada .reg-txt{font-size:13px;line-height:1.55;color:var(--texto);white-space:pre-line}
+.reg-entrada.final{border-color:var(--ardiendo);background:rgba(255,94,58,.06)}
+.reg-entrada.final .reg-cab{color:var(--ardiendo)}
+
+/* --- overlay de cierre de pozo --- */
+#cierre{
+  position:fixed;inset:0;z-index:50;display:none;padding:24px;
+  align-items:center;justify-content:center;
+  background:rgba(8,10,14,.94);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+#cierre.on{display:flex}
+#cierre .caja{
+  max-width:420px;width:100%;background:var(--capa);
+  border:1px solid var(--linea);border-radius:14px;padding:20px;
+}
+#cierre .cierre-cab{font-family:var(--mono);font-size:11px;color:var(--tenue);
+  letter-spacing:.1em;margin-bottom:12px}
+#cierre .cierre-txt{font-size:14px;line-height:1.6;color:var(--texto);
+  white-space:pre-line;margin-bottom:20px;font-family:var(--mono)}
+#cierre button{
+  width:100%;padding:14px;border-radius:12px;background:transparent;
+  border:1px solid var(--frio);color:var(--frio);
+  font-family:var(--sans);font-size:14px;font-weight:600;
+}
+#cierre button:active{background:rgba(79,195,217,.1)}
 
 /* --- +N flotante --- */
 .chispa{position:absolute;font-family:var(--mono);font-size:15px;font-weight:600;
@@ -283,6 +326,11 @@ section{margin-bottom:26px}
     <div id="mejoras"></div>
   </section>
 
+  <section class="pagina oculta" data-pag="registro">
+    <h2>Registro de perforación</h2>
+    <div id="registroLista"></div>
+  </section>
+
   <section class="pagina oculta" data-pag="stats">
     <h2>Estadísticas</h2>
     <div id="statsPanel"></div>
@@ -313,6 +361,11 @@ section{margin-bottom:26px}
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg>
     <span>Mejoras</span>
   </button>
+  <button class="nav-tab" data-pag="registro">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+    <span class="badge" id="regBadge"></span>
+    <span>Registro</span>
+  </button>
   <button class="nav-tab" data-pag="stats">
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11"/><path d="M12 20V4"/><path d="M19 20v-6"/></svg>
     <span>Stats</span>
@@ -323,6 +376,15 @@ section{margin-bottom:26px}
   </button>
 </nav>
 
+<div id="cierre">
+  <div class="caja">
+    <div class="cierre-cab" id="cierreCab">CIERRE DE POZO</div>
+    <div class="cierre-txt" id="cierreTxt"></div>
+    <button id="cierreOk">Emplazar nuevo pozo</button>
+  </div>
+</div>
+
+<script src="./registro.js"></script>
 <script>
 /* ============ ALMACENAMIENTO ============
    Funciona tanto dentro de Claude como en Safari en tu iPhone. */
@@ -418,7 +480,8 @@ let s = nuevaPartida();
 function nuevaPartida(){
   const mod = {}; MODULOS.forEach(m=>mod[m.id]=0);
   return { j:0, totalCiclo:0, mod, mejoras:[], isotopos:0, toques:0, t:Date.now(),
-           totalVida:0, tiempoJuego:0, mejorTasa:0, toquesVida:0, recalibraciones:0 };
+           totalVida:0, tiempoJuego:0, mejorTasa:0, toquesVida:0, recalibraciones:0,
+           registro:[], registroLeidos:[] };
 }
 
 /* ============ CÁLCULOS ============ */
@@ -597,14 +660,27 @@ $('recal').onclick = ()=>{
   const gana = isotoposAlRecalibrar();
   if(gana < 1) return;
   if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (producción ×${fmt(Math.pow(1.05,gana))} para siempre).\n\n¿Seguimos?`)) return;
+  mostrarCierre(gana);
+};
+
+// entrada de cierre (no va por profundidad): se lee antes de reiniciar
+function mostrarCierre(gana){
+  $('cierreCab').textContent = 'CIERRE DE POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0');
+  $('cierreTxt').textContent = 'El pozo no ha colapsado. Se ha cerrado.\nRecomiendo emplazamiento nuevo a 400 m del anterior.';
+  $('cierre').classList.add('on');
+  $('cierreOk').onclick = ()=>{ $('cierre').classList.remove('on'); hacerRecalibrado(gana); };
+}
+
+function hacerRecalibrado(gana){
   const iso = s.isotopos + gana;
   const vida = {
     totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
-    toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1
+    toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1,
+    registro: s.registro, registroLeidos: s.registroLeidos  // el registro NO se pierde
   };
   s = nuevaPartida(); s.isotopos = iso; Object.assign(s, vida);
   pintarMejoras(); guardar();
-};
+}
 
 $('borrar').onclick = ()=>{
   if(!confirm('Se borra todo, incluidos los isótopos. ¿Seguro?')) return;
@@ -629,6 +705,45 @@ function renderStats(){
   ).join('');
 }
 /* la pestaña de estadísticas llama a renderStats() al abrirse (ver navegación) */
+
+/* ============ REGISTRO DE PERFORACIÓN ============ */
+function comprobarRegistro(){
+  if(typeof REGISTRO === 'undefined') return;
+  const prof = profundidad();
+  const pozoActual = (s.recalibraciones||0)+1;
+  let nuevas = false;
+  REGISTRO.forEach(e=>{
+    if(s.registro.includes(e.id)) return;
+    if(prof >= e.m && (!e.pozo || pozoActual >= e.pozo)){ s.registro.push(e.id); nuevas = true; }
+  });
+  if(nuevas){
+    if(pestanaActiva === 'registro'){ marcarLeidas(); pintarRegistro(); }
+    else actualizarBadge();
+  }
+}
+function actualizarBadge(){
+  const noLeidas = s.registro.filter(id=>!s.registroLeidos.includes(id)).length;
+  const b = $('regBadge');
+  if(noLeidas > 0){ b.textContent = noLeidas > 9 ? '9+' : noLeidas; b.classList.add('on'); }
+  else b.classList.remove('on');
+}
+function marcarLeidas(){ s.registroLeidos = [...s.registro]; actualizarBadge(); }
+function pintarRegistro(){
+  const cont = $('registroLista'); cont.innerHTML = '';
+  if(s.registro.length === 0){
+    cont.innerHTML = '<p class="vacio">Sin entradas. El registro se completa al perforar más hondo.</p>';
+    return;
+  }
+  [...s.registro].reverse().forEach(id=>{   // más reciente primero
+    const e = REGISTRO.find(x=>x.id === id);
+    if(!e) return;
+    const div = document.createElement('div');
+    div.className = 'reg-entrada' + (e.final ? ' final' : '');
+    div.innerHTML = `<div class="reg-cab">REG-${e.id} · ${fmtMetros(e.m)} m</div><div class="reg-txt"></div>`;
+    div.querySelector('.reg-txt').textContent = e.txt;
+    cont.appendChild(div);
+  });
+}
 
 /* ============ EXPORTAR / IMPORTAR PARTIDA ============
    Sincronización manual entre dispositivos mediante un código de texto.
@@ -726,6 +841,7 @@ function bucle(ahora){
   if(acumTic >= 1){
     acumTic = 0; historial.push(jps); historial.shift(); pintarGrafica();
     if(pestanaActiva === 'stats') renderStats();
+    comprobarRegistro();
   }
 
   acumGuardado += dt;
@@ -830,6 +946,7 @@ async function cargar(){
     }catch(e){ /* partida corrupta: empezamos de cero */ }
   }
   crearFichas(); pintarMejoras();
+  comprobarRegistro(); actualizarBadge();
   requestAnimationFrame(t=>{ ultimo = t; bucle(t); });
 }
 
@@ -845,8 +962,9 @@ function mostrarPagina(id){
   pestanaActiva = id;
   _paginas.forEach(p => p.classList.toggle('oculta', p.dataset.pag !== id));
   _navTabs.forEach(t => t.classList.toggle('activo', t.dataset.pag === id));
-  if(id === 'mejoras') pintarMejoras();
-  if(id === 'stats')   renderStats();
+  if(id === 'mejoras')  pintarMejoras();
+  if(id === 'stats')    renderStats();
+  if(id === 'registro'){ marcarLeidas(); pintarRegistro(); guardar(); }
   window.scrollTo(0, 0);
 }
 _navTabs.forEach(t => t.onclick = ()=> mostrarPagina(t.dataset.pag));
@@ -857,7 +975,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 15;
+const VERSION = 16;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

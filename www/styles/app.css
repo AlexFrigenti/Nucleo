@@ -416,6 +416,10 @@ section{margin-bottom:26px}
 #recal{display:none;position:relative;padding:12px 14px 12px 16px;border-color:rgba(79,195,217,.52);background:linear-gradient(90deg,rgba(79,195,217,.1),rgba(79,195,217,.02));}
 #recal::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--frio)}#recal .protocolo-codigo{display:block;margin-bottom:4px;font:9px var(--mono);letter-spacing:.14em;color:var(--frio)}#recal strong{display:block;font-size:13px;letter-spacing:.04em}#recal small{margin-top:5px;line-height:1.35}
 #cierre .caja{border-color:rgba(240,162,46,.48);background:linear-gradient(160deg,#18202a,#11171f)}#cierre .cierre-cab{color:var(--calor)}
+.delta-detalle{margin:16px 0 12px;border-top:1px solid rgba(79,195,217,.2);border-bottom:1px solid rgba(79,195,217,.2)}
+.delta-linea{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid rgba(79,195,217,.11);font:10px/1.45 var(--mono);color:var(--texto)}
+.delta-linea:last-child{border-bottom:0}.delta-linea strong{font-size:8px;letter-spacing:.09em;color:var(--frio)}.delta-linea span{color:var(--texto)}.delta-linea.base span{color:var(--calor)}.delta-linea.vacia span{color:var(--tenue)}
+.delta-acciones{display:flex;gap:8px}.delta-acciones button{flex:1}.delta-acciones #cierreCancelar{color:var(--tenue);border-color:var(--linea)}
 @media (prefers-reduced-motion:reduce){.muestra-isotopo.recuperable::after{animation:none}}
 
 

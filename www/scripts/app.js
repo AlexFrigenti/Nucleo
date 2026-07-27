@@ -96,7 +96,7 @@ function nuevaPartida(){
            registro:[], registroLeidos:[], logros:[],
            // Investigación isotópica. `muestras` espera al próximo Protocolo Δ;
            // `investigacion` ya está convertida en una mejora permanente.
-           muestras:{}, investigacion:{}, descubiertos:[], anomaliasCiclo:[],
+           muestras:{}, investigacion:{}, resonancias:{}, matricesDelta:0, descubiertos:[], anomaliasCiclo:[],
            anomalia:null, isotopoActivo:null, tutorialIsotopoVisto:false,
            objetivosEstrato:[] };
 }
@@ -117,7 +117,7 @@ function bonusGlobal(){
   const base = tieneMejora('enriq') ? 1.07 : 1.05;
   const bonusHitos = 1 + 0.02 * (s.logros ? s.logros.length : 0);
   // red de seguridad: nunca devolver Infinity/NaN (rompería la partida)
-  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')) * bonusObjetivoEstrato('global'), 1e300);
+  return Math.min(multiplicadorDe('global') * Math.pow(base, s.isotopos) * bonusHitos * (1 + .01 * investigacionDe('ni62')) * (1 + .02 * resonanciaDe('ni62')) * (1 + .02 * matricesDelta()) * bonusObjetivoEstrato('global'), 1e300);
 }
 function produccionDe(m){
   return s.mod[m.id] * m.prod * multiplicadorDe(m.id) * bonusGlobal() * (s.isotopoActivo === 'he3' ? 1.25 : 1);
@@ -126,10 +126,10 @@ function porSegundo(){
   return MODULOS.reduce((t,m)=>t+produccionDe(m), 0);
 }
 function porToque(){
-  return 1 * multiplicadorDe('toque') * bonusGlobal() * (1 + .02 * investigacionDe('fe57')) * bonusObjetivoEstrato('toque') * (s.isotopoActivo === 'fe57' ? 1.25 : 1);
+  return 1 * multiplicadorDe('toque') * bonusGlobal() * (1 + .02 * investigacionDe('fe57')) * (1 + .03 * resonanciaDe('fe57')) * bonusObjetivoEstrato('toque') * (s.isotopoActivo === 'fe57' ? 1.25 : 1);
 }
 function costeDe(m){
-  const descuentoSi = Math.min(.15, .01 * investigacionDe('si29')) + (s.isotopoActivo === 'si29' ? .20 : 0);
+  const descuentoSi = Math.min(.25, .01 * investigacionDe('si29') + .02 * resonanciaDe('si29')) + (s.isotopoActivo === 'si29' ? .20 : 0);
   return m.base * Math.pow(CRECIMIENTO, s.mod[m.id]) * Math.max(.65, 1 - descuentoSi);
 }
 // coste total de comprar k unidades seguidas (suma geométrica)
@@ -175,11 +175,36 @@ const MUESTRAS = [
   {id:'ni62', codigo:'NI-62', simbolo:'Ni', nombre:'NÍQUEL', estrato:'NÚCLEO EXTERNO', umbral:8352100000000, estabilidad:91, pureza:96, temporal:'+1 isótopo al recalibrar este pozo', permanente:'+1 % producción global por muestra investigada'}
 ];
 function investigacionDe(id){ return Number((s.investigacion || {})[id] || 0); }
+function resonanciaDe(id){ return Number((s.resonancias || {})[id] || 0); }
+function matricesDelta(){ return Number(s.matricesDelta || 0); }
 function muestrasPendientesDe(id){ return Number((s.muestras || {})[id] || 0); }
 function muestraPorId(id){ return MUESTRAS.find(m=>m.id === id); }
 function totalMuestrasPendientes(){ return MUESTRAS.reduce((n,m)=>n + muestrasPendientesDe(m.id), 0); }
 function descripcionInvestigacionPendiente(){
   return MUESTRAS.filter(m=>muestrasPendientesDe(m.id)).map(m=>m.codigo + ' ×' + muestrasPendientesDe(m.id)).join(' · ');
+}
+function textoResonancia(id, cantidad){
+  const muestras = {fe57:'extracción manual +3 %', si29:'coste de módulos −2 %', he3:'progreso sin conexión +4 h', ni62:'producción global +2 %'};
+  return (cantidad > 1 ? cantidad + '× ' : '') + muestras[id];
+}
+function proyeccionDelta(){
+  const muestras = MUESTRAS.filter(m=>muestrasPendientesDe(m.id));
+  const individuales = muestras.map(m=>({id:m.id, codigo:m.codigo, cantidad:muestrasPendientesDe(m.id), texto:m.permanente}));
+  const resonancias = [];
+  muestras.forEach(m=>{
+    const antes = Math.floor(investigacionDe(m.id) / 2);
+    const despues = Math.floor((investigacionDe(m.id) + muestrasPendientesDe(m.id)) / 2);
+    if(despues > antes) resonancias.push({id:m.id, cantidad:despues-antes, texto:textoResonancia(m.id, despues-antes)});
+  });
+  return {individuales, resonancias, matriz:muestras.length >= 2 ? 1 : 0, tipos:muestras.length};
+}
+function lineasProtocoloDelta(){
+  const p = proyeccionDelta();
+  const lineas = [];
+  p.individuales.forEach(x=>lineas.push(x.codigo + ' ×' + x.cantidad + ': ' + x.texto));
+  p.resonancias.forEach(x=>lineas.push('Resonancia ' + x.id.toUpperCase() + ': ' + x.texto));
+  if(p.matriz) lineas.push('Matriz mixta (' + p.tipos + ' familias): producción global +2 %');
+  return lineas;
 }
 function actualizarMuestra(profM){
   const lista = $('muestraIsotopo');
@@ -444,30 +469,41 @@ $('nucleo').addEventListener('pointerdown', e=>{
 $('recal').onclick = ()=>{
   const gana = isotoposAlRecalibrar();
   if(gana < 1) return;
-  const investigacion = totalMuestrasPendientes() ? `\n\nAdemás, el laboratorio convertirá ${descripcionInvestigacionPendiente()} en investigación permanente.` : '';
-  if(!confirm(`Recalibrar reinicia julios, módulos y mejoras.\n\nGanas ${gana} isótopo${gana>1?'s':''} (producción ×${fmt(Math.pow(1.05,gana))} para siempre).${investigacion}\n\n¿Seguimos?`)) return;
   mostrarCierre(gana);
 };
 
 // entrada de cierre (no va por profundidad): se lee antes de reiniciar
 function mostrarCierre(gana){
-  $('cierreCab').textContent = 'CIERRE DE POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0');
-  const investigacion = totalMuestrasPendientes() ? '\n\nInvestigación integrada: ' + descripcionInvestigacionPendiente() + '.' : '';
-  $('cierreTxt').textContent = 'Muestra estabilizada: ' + gana + ' isótopo' + (gana>1?'s':'') + '.' + investigacion + '\n\nEl pozo no ha colapsado. Se ha cerrado.\nRecomiendo emplazamiento nuevo a 400 m del anterior.';
+  $('cierreCab').textContent = 'PROTOCOLO Δ · VISTA PREVIA';
+  $('cierreTxt').textContent = 'El cierre reinicia julios, módulos y mejoras del pozo actual. Estas mejoras se conservarán de forma permanente en el siguiente emplazamiento.';
+  const lineas = lineasProtocoloDelta();
+  $('cierreDetalle').innerHTML = [
+    '<div class="delta-linea base"><strong>RECALIBRACIÓN BASE</strong><span>+' + gana + ' isótopo' + (gana>1?'s':'') + ' · producción ×' + fmt(Math.pow(1.05,gana)) + '</span></div>',
+    ...(lineas.length ? lineas.map(linea=>'<div class="delta-linea"><strong>INVESTIGACIÓN</strong><span>' + linea + '</span></div>') : ['<div class="delta-linea vacia"><strong>LABORATORIO</strong><span>Sin muestras en custodia; solo se aplicará la recalibración base.</span></div>'])
+  ].join('');
+  $('cierreOk').textContent = 'EJECUTAR CALIBRACIÓN';
   $('cierre').classList.add('on');
+  $('cierreCancelar').onclick = ()=>{ $('cierre').classList.remove('on'); };
   $('cierreOk').onclick = ()=>{ $('cierre').classList.remove('on'); hacerRecalibrado(gana); };
 }
 
 function hacerRecalibrado(gana){
   const iso = s.isotopos + gana;
   const investigacion = {...s.investigacion};
+  const resonancias = {...(s.resonancias || {})};
+  const matrices = matricesDelta() + proyeccionDelta().matriz;
+  MUESTRAS.forEach(m=>{
+    const antes = Math.floor(investigacionDe(m.id) / 2);
+    const despues = Math.floor((investigacionDe(m.id) + muestrasPendientesDe(m.id)) / 2);
+    resonancias[m.id] = resonanciaDe(m.id) + Math.max(0, despues - antes);
+  });
   MUESTRAS.forEach(m=>{ investigacion[m.id] = investigacionDe(m.id) + muestrasPendientesDe(m.id); });
   const vida = {
     totalVida: s.totalVida, tiempoJuego: s.tiempoJuego, mejorTasa: s.mejorTasa,
     toquesVida: s.toquesVida, recalibraciones: (s.recalibraciones||0) + 1,
     registro: s.registro, registroLeidos: s.registroLeidos,  // el registro NO se pierde
     logros: s.logros,                                         // los hitos tampoco
-    investigacion, descubiertos: s.descubiertos,
+    investigacion, resonancias, matricesDelta: matrices, descubiertos: s.descubiertos,
     tutorialIsotopoVisto: s.tutorialIsotopoVisto
   };
   s = nuevaPartida(); s.isotopos = iso; Object.assign(s, vida);
@@ -902,7 +938,7 @@ function guardar(){
 // "desde" = marca de tiempo en que se guardó al salir. Tope: 8 h (24 h con batería).
 function aplicarAusencia(desde){
   const topeBase = tieneMejora('bateria') ? 24*3600 : TOPE_AUSENTE;
-  const tope = Math.min(24*3600, topeBase + investigacionDe('he3') * 2*3600);
+  const tope = Math.min(24*3600, topeBase + investigacionDe('he3') * 2*3600 + resonanciaDe('he3') * 4*3600);
   const fuera = Math.min((Date.now() - (desde || Date.now()))/1000, tope);
   if(fuera > 60){
     const extra = porSegundo() * fuera;
@@ -1014,7 +1050,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 29;
+const VERSION = 30;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

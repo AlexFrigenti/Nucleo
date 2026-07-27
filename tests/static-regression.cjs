@@ -45,8 +45,8 @@ assert(!html.includes('data-pag="equipo"'), 'La navegación no debe mantener una
 assert(app.includes('function renderEstadoSistema'), 'Falta el diagnóstico del sistema');
 assert(app.includes('function renderEventosRecientes'), 'Falta el renderizado de eventos');
 assert(app.includes('function actualizarResumenEquipo'), 'Falta el resumen dinámico de Equipo');
-assert(app.includes('const VERSION = 29'), 'La versión de la aplicación no está actualizada');
-assert(sw.includes("const CACHE = 'nucleo-v11'"), 'La caché offline no se ha renovado');
+assert(app.includes('const VERSION = 30'), 'La versión de la aplicación no está actualizada');
+assert(sw.includes("const CACHE = 'nucleo-v12'"), 'La caché offline no se ha renovado');
 assert(app.includes('activarMicrointeracciones'), 'Falta el feedback de interacción');
 assert(app.includes('activarTransicionEstrato'), 'Falta la transición de estratos');
 assert(app.includes('dispararMuestraDetectada'), 'Falta el feedback de muestra isotópica');
@@ -69,3 +69,9 @@ assert(html.includes('id="perfilFirma"'), 'Falta la pista de la próxima firma')
 assert(app.includes('const OBJETIVOS_ESTRATO'), 'Falta la definición de objetivos por estrato');
 assert(app.includes('function actualizarObjetivoEstrato'), 'Falta el progreso del objetivo de estrato');
 assert(app.includes('bonusObjetivoEstrato'), 'Faltan las recompensas operativas por estrato');
+assert(html.includes('id="cierreDetalle"'), 'Falta el detalle de resultados del Protocolo Δ');
+assert(html.includes('id="cierreCancelar"'), 'Falta la cancelación de la vista previa del Protocolo Δ');
+assert(app.includes('function proyeccionDelta'), 'Falta la proyección del Protocolo Δ');
+assert(app.includes('function lineasProtocoloDelta'), 'Falta el resumen permanente del Protocolo Δ');
+assert(app.includes('resonancias'), 'Faltan las resonancias por muestras repetidas');
+assert(app.includes('matricesDelta'), 'Falta la bonificación por matriz isotópica mixta');

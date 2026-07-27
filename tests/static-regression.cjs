@@ -12,6 +12,11 @@ assert(html.includes('data-pag="equipo"'), 'Falta la página Equipo');
 assert(html.includes('data-pag="sistema"'), 'Falta la página Sistema');
 assert(html.includes('./styles/app.css'), 'Falta la hoja de estilos externa');
 assert(html.includes('./scripts/app.js'), 'Falta el script externo');
+assert(html.includes('id="instrumentos"'), 'Falta el panel de instrumentación');
+assert(html.includes('id="perfilGeologico"'), 'Falta el perfil geológico');
+assert(html.includes('id="radarBarrido"'), 'Falta el radar científico');
+assert(app.includes('function actualizarInstrumentos'), 'Falta telemetría científica');
+assert(app.includes("$('areaGrafica')"), 'Falta la gráfica de producción renovada');
 
 assert(app.includes("const CLAVE = 'nucleo_v1'"), 'Cambió la clave de guardado');
 assert(app.includes('Math.min((ahora - ultimo)/1000, 1)'), 'Cambió el límite de delta');

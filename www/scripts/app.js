@@ -967,12 +967,16 @@ function dibujar(jps){
   const nombreEstrato = estratoDe(profM);
   if($('estrato').textContent !== nombreEstrato){
     $('estrato').textContent = nombreEstrato;
+    $('estratoPerfil').textContent = nombreEstrato;
     activarTransicionEstrato();
   }
   $('radarProfundidad').textContent = fmtProfundidad(profM);
   actualizarInstrumentos(profM, jps);
   actualizarObjetivoEstrato(profM);
   $('cabPozo').textContent = 'POZO ' + String((s.recalibraciones||0)+1).padStart(2,'0') + ' · SONDEO PROFUNDO';
+  $('plantaSonda').textContent = '×' + (s.mod.sonda || 0);
+  $('plantaTurbina').textContent = '×' + (s.mod.turbina || 0);
+  $('plantaInter').textContent = '×' + (s.mod.inter || 0);
 
   // anillo: avance hacia el siguiente isótopo
   const actual = isotoposAlRecalibrar();
@@ -985,6 +989,8 @@ function dibujar(jps){
   $('restante').textContent = actual >= 1
       ? 'siguiente isótopo en ' + (jps>0 ? fmtTiempo(falta) : '—')
       : 'primer isótopo al ' + Math.floor(p*100) + '%';
+  const siguiente = siguienteObjetivoEstrato();
+  $('plantaObjetivo').textContent = siguiente ? 'PRÓXIMA FIRMA · ' + siguiente.firma : 'REFERENCIA CENTRAL FIJADA';
 
   const gana = isotoposAlRecalibrar();
   actualizarMuestra(profM);
@@ -1160,7 +1166,7 @@ cargar();
    VERSION: súbela en 1 cada vez que publiques cambios,
    y pon el mismo número en el archivo version.json.
    Así la app sabe cuándo hay algo nuevo publicado. */
-const VERSION = 37;
+const VERSION = 38;
 $('version').textContent = 'v' + VERSION;
 
 // Registra el service worker (copia offline). Cuando confirme que

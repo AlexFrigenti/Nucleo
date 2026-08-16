@@ -17,6 +17,17 @@ Estas reglas se aplican a cualquier IA que modifique Núcleo.
 
 Para T1/T2 usa specs/NNN-feature-name/ y las plantillas comunes de project-quality. No inventes cobertura, backend ni TypeScript. Usa TDD para lógica comprobable, debugging sistemático ante fallos y verificación completa antes de declarar el cambio terminado.
 
+## Ejecución agentic proporcional
+
+Mantén el proceso proporcional al riesgo y complejidad del cambio.
+
+Por defecto, utiliza una implementación coherente, una revisión independiente del diff completo, una ronda agrupada de correcciones y una verificación final.
+
+- No asignes automáticamente un subagente independiente a cada microtarea ni encadenes rondas completas de implementación, revisión y corrección sin necesidad técnica.
+- Si después de la primera ronda de correcciones fuera necesaria otra revisión integral o una nueva ronda sustancial de trabajo, detente, resume el estado y solicita autorización antes de continuar.
+- Los revisores deben priorizar el diff, los requisitos y el contexto necesario, evitando releer repetidamente archivos o áreas no afectadas salvo que sea necesario.
+- Reutiliza evidencia de validación que siga siendo válida y no repitas análisis o pruebas costosas sin una razón técnica.
+
 ## Validación
 
 Ejecuta npm test, npm run build y npm run check cuando correspondan. Comprueba también artefactos generados, coherencia de versión, PWA/service worker y revisión visual móvil cuando el cambio los afecte.
